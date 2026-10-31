@@ -950,7 +950,7 @@ function startApp(DATA) {
   function todayPage() {
     return [
       sampleNote(),
-      header("New Prayer Requests", latest ? "From the study on " + fmt(latest, true) : "Shared at our Bible studies", "none"),
+      header("New Prayer Requests", latest ? "From the study on " + fmt(latest, true) : "Shared at our Bible studies"),
       today.length ? h("section", { class: "top", "aria-label": "New prayer requests, " + plural(today.length, "person", "people") },
         h("p", { class: "hint lead", text: "Tap a name to read their prayer request." }),
         todayRows()) :
