@@ -862,8 +862,31 @@ function startApp(DATA) {
     }));
     return [
       header("Manage", "", "none"),
+      nameQuestions(),
       seg,
       section === "members" ? manageMembers() : section === "chat" ? manageChat() : manageRequests()];
+  }
+
+  // When the chat said just "Carol" and there are two Carols, ask here with one tap per name.
+  function nameQuestions() {
+    var open = (DATA.all || []).filter(function (it) { return !it.archived && it.choices && it.choices.length; });
+    if (!open.length) return null;
+    return h("section", { class: "name-qs", "aria-labelledby": "nq-title" },
+      h("h2", { class: "nq-title", id: "nq-title", text: open.length === 1 ? "One name to confirm" : open.length + " names to confirm" }),
+      h("ul", { class: "nq-list" }, open.map(function (it) {
+        return h("li", { class: "nq-card" },
+          h("p", { class: "nq-ask", text: "Which " + it.name + " is this?" }),
+          h("p", { class: "nq-text", text: "\u201C" + it.text + "\u201D" }),
+          h("div", { class: "nq-choices", role: "group", "aria-label": "Which " + it.name + " is this?" },
+            it.choices.map(function (name) {
+              return h("button", { type: "button", class: "btn nq-pick", onclick: function () {
+                manage({ action: "pick-name", id: it.id, name: name }, "Thanks. It\u2019s now under " + name + (/\.$/.test(name) ? "" : ".") );
+              } }, name);
+            }),
+            h("button", { type: "button", class: "linklike", onclick: function () {
+              ui.mFilter = "list"; ui.mEdit = it.id; navigate("manage");
+            } }, "Someone else")));
+      })));
   }
 
   function manageRequests() {

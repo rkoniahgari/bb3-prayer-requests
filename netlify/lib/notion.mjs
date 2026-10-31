@@ -114,6 +114,8 @@ export function toItem(row) {
     source: /^website/i.test(plain(p.Source)) ? "web" : "study",
     hidden: !(p["Show on page"] && p["Show on page"].checkbox),
     archived: status === "Archived",
+    // Members the name could be, when the chat wasn't clear (e.g. "Carol" → Carol G. or Carol W.).
+    choices: plain(p["Name options"]).split(",").map((s) => s.trim()).filter(Boolean),
   };
 }
 
