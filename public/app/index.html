@@ -738,9 +738,29 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
 .fade-in { animation: fade-in .35s ease-out; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .sk, .fade-in { animation: none; } }
+/* ---- first-visit launch screen ---- */
+.launch {
+  position: fixed; inset: 0; z-index: 50; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem;
+  padding: 24px max(24px, env(safe-area-inset-right, 0px)) 24px max(24px, env(safe-area-inset-left, 0px));
+  transition: opacity .22s ease-out;
+}
+.launch img { width: min(13rem, 60vw); height: auto; border-radius: 18px; box-shadow: 0 10px 30px rgba(38, 94, 128, .18); margin-bottom: 1rem; animation: launch-in .5s ease-out both; }
+.launch-name { font-family: var(--display); font-weight: 600; font-size: 1.45rem; color: var(--ink); animation: launch-in .5s .08s ease-out both; }
+.launch-sub { color: var(--muted); font-size: 1rem; animation: launch-in .5s .14s ease-out both; }
+.launch-line { position: relative; width: 7.5rem; height: 4px; margin-top: 1.4rem; border-radius: 999px; background: var(--line); overflow: hidden; }
+.launch-line span { position: absolute; top: 0; bottom: 0; width: 40%; border-radius: 999px; background: var(--accent); animation: launch-glide 1.1s ease-in-out infinite; }
+.launch.leaving { opacity: 0; }
+@keyframes launch-glide { from { left: -40%; } to { left: 100%; } }
+@keyframes launch-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .launch img, .launch-name, .launch-sub { animation: none; }
+  .launch-line span { animation: none; left: 30%; }
+}
 </style>
 </head>
 <body>
+<script>(function(){var k=decodeURIComponent(location.pathname.split("/")[1]||"");window.__g3First=fetch("/api/data",{headers:{"x-group-key":k}});})();</script>
 <main id="app" tabindex="-1"></main>
 <script>
 function startApp(DATA) {
@@ -1746,16 +1766,17 @@ function startApp(DATA) {
 }
 // ---------- start-up: the link itself is the key ----------
 var GROUP_KEY = decodeURIComponent(location.pathname.split("/")[1] || "");
+function readResponse(res) {
+  if (res.status === 403) { location.replace("/private.html"); throw new Error("private"); }
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
 function api(path, body) {
   return fetch("/api/" + path, {
     method: body ? "POST" : "GET",
     headers: { "x-group-key": GROUP_KEY, "content-type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
-  }).then(function (res) {
-    if (res.status === 403) { location.replace("/private.html"); throw new Error("private"); }
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
-  });
+  }).then(readResponse);
 }
 var noticeEl, noticeTimer;
 function notify(message, kind) {
@@ -1781,31 +1802,39 @@ function readCache() {
 function writeCache(d) {
   try { localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), data: d })); } catch (e) {}
 }
-var SKELETON = '<div class="skel" aria-hidden="true">' +
-  '<div class="skel-brand"><img src="/app/logo.webp" alt="" width="720" height="405"><span class="sk sk-w40"></span></div>' +
-  '<span class="sk sk-title"></span><span class="sk sk-w55"></span>' +
-  '<div class="skel-list">' + new Array(5).join('<div class="skel-row"><span class="sk sk-dot"></span><span class="skel-col"><span class="sk sk-w45"></span><span class="sk sk-w75"></span></span></div>') + '</div>' +
-  '</div><div class="skel-bar" aria-hidden="true"></div><p class="sr">Loading the prayer list</p>';
+// First visit: a calm launch screen (logo, group name, a gliding line) instead of a blank page.
+var LAUNCH = '<div class="launch" id="launch" aria-hidden="true">' +
+  '<img src="/app/logo.webp" alt="" width="720" height="405">' +
+  '<p class="launch-name">Bible &amp; Breakfast</p><p class="launch-sub">Group 3 \u00B7 Prayer Requests</p>' +
+  '<span class="launch-line"><span></span></span></div><p class="sr">Opening the prayer list</p>';
 (function boot() {
   var app = document.getElementById("app");
   var cached = readCache();
+  // The list was already requested in the first moment the page opened (see the top of the page).
+  var first = window.__g3First ? window.__g3First.then(readResponse) : api("data");
+  window.__g3First = null;
   if (cached) {
     var live = startApp(cached);
-    api("data").then(function (d) { writeCache(d); live.refresh(d); }, function () {});
+    first.then(function (d) { writeCache(d); live.refresh(d); }, function () {});
     return;
   }
   app.setAttribute("aria-busy", "true");
-  app.innerHTML = SKELETON;
-  api("data").then(function (d) {
+  // Only show the launch screen if the list takes more than a moment, so it never just flashes.
+  var showLaunch = setTimeout(function () { app.innerHTML = LAUNCH; }, 150);
+  first.then(function (d) {
+    clearTimeout(showLaunch);
     writeCache(d);
-    app.removeAttribute("aria-busy");
-    app.classList.add("fade-in");
-    startApp(d);
+    var launch = document.getElementById("launch");
+    var start = function () { app.removeAttribute("aria-busy"); app.classList.add("fade-in"); startApp(d); };
+    if (!launch || matchMedia("(prefers-reduced-motion: reduce)").matches) { start(); return; }
+    launch.classList.add("leaving");
+    setTimeout(start, 220);
   }, function (err) {
+    clearTimeout(showLaunch);
     if (String(err && err.message) === "private") return;
     app.removeAttribute("aria-busy");
     app.innerHTML = '<div class="empty"><strong>The prayer list could not load.</strong><p>Please check your internet connection.</p><button type="button" class="btn primary" id="retry">Try again</button></div>';
-    document.getElementById("retry").onclick = boot;
+    document.getElementById("retry").onclick = function () { location.reload(); };
   });
 })();
 
