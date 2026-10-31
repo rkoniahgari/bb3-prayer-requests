@@ -209,8 +209,10 @@ function startApp(DATA) {
       h("p", { class: "members-hint" },
         h("span", { class: "lead-text", text: "Tap a name to see their prayer requests." }),
         latest && today.length ? [" ", h("span", { class: "badge", text: "New" }), " marks a new request."] : null),
-      h("ul", { class: "grid" }, everyone.map(function (p) {
-        return h("li", null, h("a", { class: "tile" + (p.isNew ? " is-new" : ""), href: "#" + p.slug, id: "tile-" + p.slug,
+      memberSearch(),
+      h("p", { class: "search-empty", id: "search-empty", hidden: true }),
+      h("ul", { class: "grid", id: "member-grid" }, everyone.map(function (p) {
+        return h("li", { "data-name": p.name.toLowerCase().replace(/[^a-z ]/g, "") }, h("a", { class: "tile" + (p.isNew ? " is-new" : ""), href: "#" + p.slug, id: "tile-" + p.slug,
             "aria-label": p.name + ", " + plural(p.open.length, "prayer request", "prayer requests") + (p.isNew ? ", new" : "") },
           p.isNew ? h("span", { class: "badge", "aria-hidden": "true", text: "New" }) : null,
           h("span", { class: "avatar", "aria-hidden": "true", text: initials(p.name) }),
@@ -218,6 +220,40 @@ function startApp(DATA) {
           h("span", { class: "tile-count", "aria-hidden": "true", text: p.open.length ? "See " + plural(p.open.length, "request", "requests") + " \u203A" : "No requests yet \u203A" })));
       })),
       footer()];
+  }
+
+  // A quiet "Find a name" field. It hides the tiles that don't match as you type; nothing else moves.
+  var SEARCH = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20.5 20.5"/></svg>';
+  var CLOSE = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  function memberSearch() {
+    var input = h("input", { type: "search", id: "member-search", class: "search-input", placeholder: "Find a name",
+      "aria-label": "Find a member by name", autocomplete: "off", autocapitalize: "words", spellcheck: "false", enterkeyhint: "search",
+      "aria-controls": "member-grid", "aria-describedby": "search-status",
+      oninput: function () { ui.memberQuery = input.value; filterMembers(); },
+      onkeydown: function (e) { if (e.key === "Escape" && input.value) { e.preventDefault(); clear.click(); } } });
+    input.value = ui.memberQuery || "";
+    var clear = h("button", { type: "button", class: "search-clear", "aria-label": "Clear the search", title: "Clear the search", html: CLOSE,
+      hidden: !input.value, onclick: function () { input.value = ""; ui.memberQuery = ""; filterMembers(); input.focus(); } });
+    setTimeout(filterMembers, 0);
+    return h("div", { class: "search", role: "search" },
+      h("span", { class: "search-icon", html: SEARCH }), input, clear,
+      h("p", { class: "visually-hidden", id: "search-status", "aria-live": "polite" }));
+  }
+  function filterMembers() {
+    var input = document.getElementById("member-search");
+    if (!input) return;
+    var q = input.value.toLowerCase().replace(/[^a-z ]/g, "").trim();
+    var shown = 0;
+    document.querySelectorAll("#member-grid > li").forEach(function (li) {
+      var name = li.getAttribute("data-name");
+      var match = !q || name.split(" ").some(function (w) { return w.indexOf(q) === 0; }) || name.indexOf(q) === 0;
+      li.hidden = !match; if (match) shown++;
+    });
+    var empty = document.getElementById("search-empty");
+    empty.hidden = !q || shown > 0;
+    empty.textContent = "No one by that name. Check the spelling, or clear the search to see everyone.";
+    document.querySelector(".search-clear").hidden = !input.value;
+    document.getElementById("search-status").textContent = q ? plural(shown, "member", "members") + " found" : "";
   }
 
   function reqCard(it, showName, canUpdate) {
@@ -385,8 +421,7 @@ function startApp(DATA) {
   function privacyNote() {
     return h("aside", { class: "privacy-note", role: "note", "aria-labelledby": "privacy-title" },
       h("p", { class: "privacy-title", id: "privacy-title" }, h("span", { class: "privacy-icon", html: INFO }), "Important note"),
-      h("p", { text: "First names only. Leave out medical details, addresses and phone numbers." }),
-      h("p", { text: "For anything personal, just write \u201CUnspoken request.\u201D" }));
+      h("p", { text: "Please don\u2019t include sensitive details, like full names, medical information or phone numbers." }));
   }
   function addPage() {
     if (ui.added) return thanksView(ui.added);
@@ -448,9 +483,12 @@ function startApp(DATA) {
     var isPraise = item.kind === "praise";
     return [
       h("div", { class: "thanks", role: "status" },
-        h("span", { class: "thanks-icon", html: CHECK }),
-        h("h1", { id: "page-title", tabindex: "-1", text: "Thank you, " + firstName(item.name) }),
-        h("p", { text: isPraise ? "Your praise report was shared with the group." : "Your prayer request was added under your name. The group will see it on the list." }),
+        h("span", { class: "pray-glow", "aria-hidden": "true" }, h("span", { class: "pray-emoji", text: isPraise ? "\uD83D\uDE4C" : "\uD83D\uDE4F" })),
+        h("h1", { id: "page-title", tabindex: "-1", text: isPraise ? "Praise God, " + firstName(item.name) + "!" : "We\u2019re praying for you, " + firstName(item.name) }),
+        h("p", { text: isPraise ? "Thank you for sharing. Your praise report is on the Praise Reports page for the group to celebrate with you." : "Your request is on the list under your name, so the whole group can pray for it." }),
+        h("blockquote", { class: "verse" },
+          h("p", { text: isPraise ? "\u201CGive thanks to the Lord, for he is good; his love endures forever.\u201D" : "\u201CCast all your anxiety on him because he cares for you.\u201D" }),
+          h("cite", { text: isPraise ? "Psalm 107:1" : "1 Peter 5:7" })),
         h("a", { class: "btn primary wide-btn", href: isPraise ? "#praise" : "#" + p.slug, onclick: function () { ui.added = null; } },
           isPraise ? "See it on the Praise page" : "See it under your name"),
         h("a", { class: "btn wide-btn", href: "#today", onclick: function () { ui.added = null; } }, "Back to New Requests"),
@@ -1055,7 +1093,7 @@ function startApp(DATA) {
     // A fresh copy arrived from Notion: redraw, unless someone is in the middle of typing.
     refresh: function (d) {
       DATA = d; prepare(); shape(); updateBadge();
-      if (!/^(add|update|praise-add|paste|manage-chat)$/.test(currentKey()) && !ui.mEdit) route(true);
+      if (!/^(add|update|praise-add|paste|manage-chat)$/.test(currentKey()) && !ui.mEdit && !(document.activeElement && document.activeElement.id === "member-search")) route(true);
     },
   };
 }
