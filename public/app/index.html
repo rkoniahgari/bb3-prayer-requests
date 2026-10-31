@@ -695,6 +695,19 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
   .m-row .m-line:has(.member) .m-actions { width: auto; padding-left: 0; margin-top: 0; }
   .m-row .icon-btn { background: var(--bg); }
 }
+/* ---- bottom bar always fits the screen, even with four tabs or large text ---- */
+@media (max-width: 899px) {
+  .tabbar ul { grid-template-columns: repeat(var(--tabs, 3), minmax(0, 1fr)); }
+  .tabbar-link { min-width: 0; }
+  .tab-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 400px) {
+  .tabbar ul[style*="--tabs:4"] { gap: .25rem; }
+  .tabbar ul[style*="--tabs:4"] .tabbar-link { font-size: .85rem; padding-inline: .1rem; }
+}
+.seg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.seg-btn { min-width: 0; flex-wrap: wrap; gap: .25rem; }
+@media (max-width: 380px) { .seg-btn { font-size: .88rem; padding-inline: .2rem; } }
 </style>
 </head>
 <body>
@@ -869,7 +882,7 @@ function startApp(DATA) {
       h("div", { class: "title-row2" },
         h("div", { class: "title-block" },
           h("h1", { id: "page-title", tabindex: "-1", text: title }),
-          h("p", { text: sub })),
+          sub ? h("p", { text: sub }) : null),
         action === "praise" ? praiseButton() : action === "none" ? null : addButton()));
   }
   function sampleNote() { return null; }
@@ -1506,7 +1519,7 @@ function startApp(DATA) {
         h("span", { text: x[2] }), x[3] ? h("span", { class: "seg-count", text: String(x[3]) }) : null);
     }));
     return [
-      header("Manage", "Only Lisa and Rebecca can see this page.", "none"),
+      header("Manage", "", "none"),
       seg,
       section === "members" ? manageMembers() : section === "chat" ? manageChat() : manageRequests()];
   }
