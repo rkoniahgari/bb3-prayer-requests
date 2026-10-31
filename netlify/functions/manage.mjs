@@ -1,9 +1,9 @@
 // Manager-only actions: fix or hide requests, and keep the member list up to date.
-import { MEMBERS_DB, INBOX_DB, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem } from "../lib/notion.mjs";
+import { MEMBERS_DB, INBOX_DB, isId, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem, safe } from "../lib/notion.mjs";
 
 const bare = (id) => String(id || "").replace(/-/g, "");
 
-export default async (request) => {
+export default safe(async (request) => {
   if (request.method !== "POST") return json({ error: "Use POST." }, 405);
   if (role(request) !== "manager") return denied();
   const body = await readBody(request);
@@ -37,6 +37,7 @@ export default async (request) => {
   }
 
   if (action === "member-remove") {
+    if (!isId(body.id)) return json({ error: "Member not found." }, 404);
     const page = await notion(`/pages/${body.id}`);
     if (!page.parent || bare(page.parent.database_id) !== bare(MEMBERS_DB)) return json({ error: "Member not found." }, 404);
     await notion(`/pages/${page.id}`, "PATCH", { properties: { Active: { checkbox: false } } });
@@ -63,6 +64,6 @@ export default async (request) => {
   }
   const updated = await notion(`/pages/${row.id}`, "PATCH", { properties });
   return json(toItem(updated));
-};
+});
 
 export const config = { path: "/api/manage" };

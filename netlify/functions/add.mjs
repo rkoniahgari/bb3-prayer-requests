@@ -1,7 +1,7 @@
 // A member adds a prayer request or a praise report.
-import { REQUESTS_DB, notion, role, json, denied, readBody, clean, text, todayET, toItem } from "../lib/notion.mjs";
+import { REQUESTS_DB, notion, role, json, denied, readBody, clean, text, todayET, toItem, safe } from "../lib/notion.mjs";
 
-export default async (request) => {
+export default safe(async (request) => {
   if (request.method !== "POST") return json({ error: "Use POST." }, 405);
   const who = role(request);
   if (!who) return denied();
@@ -23,6 +23,6 @@ export default async (request) => {
     },
   });
   return json(toItem(row));
-};
+});
 
 export const config = { path: "/api/add" };

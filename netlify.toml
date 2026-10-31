@@ -10,6 +10,15 @@
     X-Robots-Tag = "noindex, nofollow, noarchive"
     Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
+    # Only run code and load files from this site (plus Google's fonts). Blocks injected scripts.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    # Don't let other sites show this page inside a frame.
+    X-Frame-Options = "DENY"
+    # Always use the secure https:// address.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    # The page never needs the camera, microphone or location.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    Cross-Origin-Opener-Policy = "same-origin"
 
 [[headers]]
   for = "/app/*"

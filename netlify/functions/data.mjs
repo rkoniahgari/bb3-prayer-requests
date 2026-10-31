@@ -1,7 +1,7 @@
 // Everything the page needs: members and prayer requests. Managers also get hidden and removed ones.
-import { MEMBERS_DB, REQUESTS_DB, INBOX_DB, queryAll, role, json, denied, toItem, plain } from "../lib/notion.mjs";
+import { MEMBERS_DB, REQUESTS_DB, INBOX_DB, queryAll, role, json, denied, toItem, plain, safe } from "../lib/notion.mjs";
 
-export default async (request) => {
+export default safe(async (request) => {
   const who = role(request);
   if (!who) return denied();
   const [rows, memberRows] = await Promise.all([
@@ -33,6 +33,6 @@ export default async (request) => {
     }
   }
   return json(out);
-};
+});
 
 export const config = { path: "/api/data" };

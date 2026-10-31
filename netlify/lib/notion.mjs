@@ -29,12 +29,35 @@ export async function queryAll(db, body = {}) {
   return rows;
 }
 
+import { timingSafeEqual } from "node:crypto";
+
+// Compare secrets in constant time, so response timing gives nothing away.
+function same(a, b) {
+  if (!a || !b) return false;
+  const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+  return x.length === y.length && timingSafeEqual(x, y);
+}
+
 // "member" for the group link, "manager" for Lisa's and Rebecca's link, otherwise null.
 export function role(request) {
   const key = request.headers.get("x-group-key") || "";
-  if (key && key === process.env.MANAGER_PATH) return "manager";
-  if (key && key === process.env.MEMBER_PATH) return "member";
+  if (same(key, process.env.MANAGER_PATH)) return "manager";
+  if (same(key, process.env.MEMBER_PATH)) return "member";
   return null;
+}
+
+export const isId = (id) => /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i.test(String(id || ""));
+
+// Wrap a function so unexpected errors are logged on the server and answered with a plain message.
+export function safe(handler) {
+  return async (request, context) => {
+    try {
+      return await handler(request, context);
+    } catch (err) {
+      console.error(err);
+      return json({ error: "Something went wrong. Please try again." }, 500);
+    }
+  };
 }
 
 export function json(data, status = 200) {
@@ -46,8 +69,13 @@ export function json(data, status = 200) {
 
 export const denied = () => json({ error: "This page is private." }, 403);
 
+// Read a JSON body, refusing anything unreasonably large (a whole Zoom chat is well under this).
 export async function readBody(request) {
-  try { return await request.json(); } catch { return {}; }
+  try {
+    const raw = await request.text();
+    if (raw.length > 60000) return {};
+    return JSON.parse(raw);
+  } catch { return {}; }
 }
 
 export const clean = (s, max) => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, max);
@@ -65,7 +93,7 @@ const bare = (id) => String(id || "").replace(/-/g, "");
 
 // Make sure a page id really is a row in the prayer requests database before changing it.
 export async function requestRow(id) {
-  if (!/^[0-9a-f-]{32,36}$/i.test(String(id || ""))) return null;
+  if (!isId(id)) return null;
   const page = await notion(`/pages/${id}`);
   return page.parent && bare(page.parent.database_id) === bare(REQUESTS_DB) ? page : null;
 }

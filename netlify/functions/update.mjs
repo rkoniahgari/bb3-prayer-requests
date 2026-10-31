@@ -1,8 +1,8 @@
 // Mark a prayer answered, take it off the list, or undo either.
 // change: { answered: true, note, by } | { removed: true, by } | null (undo: back to the prayer list)
-import { notion, role, json, denied, readBody, clean, text, todayET, requestRow, toItem } from "../lib/notion.mjs";
+import { notion, role, json, denied, readBody, clean, text, todayET, requestRow, toItem, safe } from "../lib/notion.mjs";
 
-export default async (request) => {
+export default safe(async (request) => {
   if (request.method !== "POST") return json({ error: "Use POST." }, 405);
   if (!role(request)) return denied();
   const { id, change } = await readBody(request);
@@ -24,6 +24,6 @@ export default async (request) => {
   }
   const updated = await notion(`/pages/${row.id}`, "PATCH", { properties });
   return json(toItem(updated));
-};
+});
 
 export const config = { path: "/api/update" };
