@@ -1,0 +1,6 @@
+{
+  "name": "bb3-prayer-requests",
+  "private": true,
+  "description": "Prayer requests for Bible & Breakfast, Group 3. Static page + Netlify Functions, with Notion as the data store.",
+  "engines": { "node": ">=18" }
+}

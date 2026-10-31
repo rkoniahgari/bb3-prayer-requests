@@ -1,0 +1,1594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Bible &amp; Breakfast · Prayer Requests</title>
+<link rel="apple-touch-icon" href="/app/icon.png">
+<link rel="icon" href="/app/icon.png">
+<meta name="theme-color" content="#265E80">
+<meta name="apple-mobile-web-app-title" content="Prayer Requests">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Poppins:wght@600;700&display=swap">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}</style>
+<style>
+/* Layout: a "contacts" model. Home is a grid of name cards; each person has their own page
+   with big request cards and Previous / Next. Yellow always means "new" or "praise". */
+:root {
+  --sun: #FFD21F;
+  --brand-teal: #265E80;
+  --bg: #FBF8F3;
+  --surface: #FFFFFF;
+  --ink: #1E2329;
+  --muted: #5A554F;
+  --line: #E9E3D9;
+  --edge: #878074;
+  --new-line: #A67C00;
+  --danger: #B3261E;
+  --bar-bg: #265E80;
+  --bar-ink: #FFFFFF;
+  --bar-active-bg: #FFFFFF;
+  --bar-active-ink: #265E80;
+  --accent: #265E80;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DCE9F2;
+  --praise: #6B5000;
+  --praise-soft: #FFF2BF;
+  --focus: #C77700;
+  --display: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161C; --surface: #19212A; --ink: #EEF2F6; --muted: #B6C0CB; --line: #33404E; --edge: #6E8194; --new-line: #FFD21F; --danger: #FF9C92; --bar-bg: #1B3A52; --bar-ink: #FFFFFF; --bar-active-bg: #8EC3EC; --bar-active-ink: #0C1A25;
+    --accent: #8EC3EC; --accent-ink: #0C1A25; --accent-soft: #1C3246; --praise: #EFC56A; --praise-soft: #382C12;
+    --focus: #F2B544; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161C; --surface: #19212A; --ink: #EEF2F6; --muted: #B6C0CB; --line: #33404E; --edge: #6E8194; --new-line: #FFD21F; --danger: #FF9C92; --bar-bg: #1B3A52; --bar-ink: #FFFFFF; --bar-active-bg: #8EC3EC; --bar-active-ink: #0C1A25;
+  --accent: #8EC3EC; --accent-ink: #0C1A25; --accent-soft: #1C3246; --praise: #EFC56A; --praise-soft: #382C12;
+  --focus: #F2B544; color-scheme: dark;
+}
+:root[data-size="2"] { --scale: 1.15; }
+:root[data-size="3"] { --scale: 1.32; }
+html { font-size: calc(18px * var(--scale)); }
+body { background: var(--bg); color: var(--ink); font: 1.1rem/1.6 var(--body); }
+* { box-sizing: border-box; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+h1:focus, h2:focus { outline: none; }
+
+#app {
+  max-width: 46rem; margin: 0 auto;
+  padding-block: 1.25rem 8rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+
+/* shared controls */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 56px; padding: .5rem 1.1rem; border-radius: 12px; border: 2px solid var(--edge);
+  background: var(--surface); cursor: pointer; font-weight: 700; font-size: 1.05rem; text-decoration: none; text-align: center; line-height: 1.25;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.size { display: flex; align-items: center; gap: .35rem; }
+.size-label { font-size: .9rem; color: var(--muted); margin-right: .15rem; }
+.size-btn { min-width: 48px; min-height: 48px; border-radius: 10px; border: 2px solid var(--edge); background: var(--surface); cursor: pointer; font-family: var(--display); font-weight: 600; line-height: 1; }
+.size-btn.s1 { font-size: 1rem; } .size-btn.s2 { font-size: 1.25rem; } .size-btn.s3 { font-size: 1.5rem; }
+.size-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.avatar {
+  flex: none; width: 3.4rem; height: 3.4rem; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 600; font-size: 1.15rem; letter-spacing: .02em;
+}
+.is-new .avatar { background: var(--sun); color: var(--brand-teal); }
+.badge { display: inline-block; background: var(--sun); color: var(--brand-teal); font-weight: 700; font-size: .82rem; padding: .05rem .55rem; border-radius: 999px; }
+
+/* home */
+.top { display: flex; flex-direction: column; gap: .9rem; }
+.brand { display: flex; align-items: center; gap: .9rem; }
+.logo { flex: none; display: block; width: 7.2rem; height: auto; border-radius: 12px; }
+.brand-text { min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+.brand-text h1 { font-size: 1.85rem; line-height: 1.15; }
+.brand-text p { color: var(--muted); font-size: .95rem; line-height: 1.35; }
+.rows { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 2px solid var(--new-line); border-radius: 16px; overflow: hidden; }
+.row-link { display: flex; align-items: center; gap: .85rem; min-height: 72px; padding: .6rem .9rem .6rem 1rem; text-decoration: none; }
+.rows li + li .row-link { border-top: 1px solid var(--line); }
+.row-link:hover { background: var(--accent-soft); }
+.row-link:focus-visible { outline-offset: -3px; }
+.row-link .avatar { width: 2.9rem; height: 2.9rem; font-size: 1rem; background: var(--sun); color: var(--brand-teal); }
+.row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .05rem; }
+.row-name { font-family: var(--display); font-weight: 600; font-size: 1.12rem; line-height: 1.3; }
+.row-preview { font-size: 1rem; line-height: 1.4; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.row-more { color: var(--accent); font-weight: 700; font-size: .9rem; }
+.chev { flex: none; font-size: 2rem; line-height: 1; color: var(--accent); }
+.deck { display: flex; flex-direction: column; gap: .7rem; }
+.deck-track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; border-radius: 16px; }
+.deck-track::-webkit-scrollbar { display: none; }
+.deck-card { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; background: var(--surface); border: 2px solid var(--sun); border-radius: 16px; padding: 1.1rem 1.2rem 1.2rem; display: flex; flex-direction: column; gap: .7rem; }
+.deck-card .today-who h3 { font-size: 1.35rem; line-height: 1.25; }
+.deck-card .avatar { width: 3rem; height: 3rem; font-size: 1.05rem; background: var(--sun); color: var(--brand-teal); }
+.deck-card ul { margin: 0; padding-left: 1.25rem; display: flex; flex-direction: column; gap: .35rem; }
+.deck-card li { font-size: 1.2rem; line-height: 1.45; overflow-wrap: anywhere; }
+.deck-card li::marker { color: var(--accent); }
+.deck-open { align-self: flex-start; margin-top: auto; min-height: 52px; }
+.deck-nav { display: grid; grid-template-columns: 1fr auto 1fr; gap: .6rem; align-items: center; }
+.deck-nav .btn { min-height: 60px; font-size: 1.1rem; }
+.deck-nav .btn[disabled] { opacity: .45; cursor: default; }
+.deck-count { font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.deck-count span { display: block; font-weight: 400; color: var(--muted); font-size: .85rem; }
+.meter { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width .2s; }
+.linklike { align-self: flex-start; background: none; border: 0; padding: .4rem .2rem; min-height: 48px; color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
+.today-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .7rem; }
+.today-card { display: flex; flex-direction: column; gap: .35rem; text-decoration: none; background: var(--surface); border: 2px solid var(--sun); border-radius: 16px; padding: .9rem 1.1rem; }
+.today-card:hover { border-color: var(--accent); }
+.today-who { display: flex; align-items: center; gap: .7rem; }
+.today-who .avatar { width: 2.6rem; height: 2.6rem; font-size: .95rem; background: var(--sun); color: var(--brand-teal); }
+.today-who strong { font-family: var(--display); font-weight: 600; font-size: 1.15rem; line-height: 1.25; }
+.today-who .go { margin-left: auto; color: var(--accent); font-weight: 700; font-size: .95rem; white-space: nowrap; }
+.today-card ul { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: .25rem; }
+.today-card li { font-size: 1.12rem; line-height: 1.45; overflow-wrap: anywhere; }
+.today-card li::marker { color: var(--accent); }
+.title-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .6rem 1rem; }
+
+.updated { color: var(--muted); }
+.updated strong { color: var(--ink); }
+.sample { border: 2px dashed var(--muted); border-radius: 12px; padding: .65rem 1rem; color: var(--muted); font-size: .95rem; }
+.sample strong { color: var(--ink); }
+.praise-link {
+  display: flex; align-items: center; gap: 1rem; text-decoration: none; min-height: 72px;
+  background: var(--praise-soft); border: 2px solid var(--new-line); border-radius: 16px; padding: .9rem 1.1rem;
+}
+.praise-link .icon { flex: none; width: 2.8rem; height: 2.8rem; border-radius: 50%; background: var(--sun); color: var(--brand-teal); display: grid; place-items: center; }
+.praise-link .icon svg { width: 1.5rem; height: 1.5rem; }
+.praise-link strong { display: block; font-family: var(--display); font-weight: 600; font-size: 1.2rem; line-height: 1.3; }
+.praise-link span.sub { color: var(--muted); font-size: .95rem; }
+.praise-link .go { margin-left: auto; font-size: 1.6rem; color: var(--praise); }
+.praise-link:hover { border-color: var(--praise); }
+.section-title { font-size: 1.3rem; }
+.filters { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.filter { min-height: 56px; border-radius: 12px; border: 2px solid var(--edge); background: var(--surface); cursor: pointer; font-weight: 700; font-size: 1rem; padding: .4rem .6rem; line-height: 1.25; }
+.filter[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.hint { color: var(--muted); font-size: .95rem; }
+.grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(8.4rem, 100%), 1fr)); gap: .75rem; }
+.tile {
+  position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; gap: .45rem;
+  padding: .85rem .55rem .75rem; border-radius: 16px; border: 2px solid var(--edge); background: var(--surface); text-decoration: none; min-height: 8.4rem;
+}
+.tile:hover { border-color: var(--accent); }
+.tile.is-new { border-color: var(--new-line); }
+.tile .avatar { width: 3rem; height: 3rem; font-size: 1.05rem; }
+.tile-name { font-weight: 700; font-size: 1.08rem; line-height: 1.25; overflow-wrap: anywhere; }
+.tile-count { color: var(--muted); font-size: .92rem; margin-top: auto; }
+.tile .badge { position: absolute; top: .5rem; right: .5rem; }
+
+/* person and praise pages */
+.topbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .6rem; }
+.who { display: flex; align-items: center; gap: 1rem; }
+.who .avatar { width: 4.6rem; height: 4.6rem; font-size: 1.5rem; }
+.who h1 { font-size: 1.95rem; line-height: 1.15; }
+.who p { color: var(--muted); }
+.cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .8rem; }
+.req { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1.05rem 1.2rem; display: flex; flex-direction: column; gap: .45rem; }
+.req.is-new { border: 2px solid var(--new-line); }
+.req.answered { background: var(--praise-soft); border-color: transparent; }
+.req-text { font-size: 1.22rem; line-height: 1.5; overflow-wrap: anywhere; }
+.req-name { font-family: var(--display); font-weight: 600; font-size: 1.1rem; }
+.req-note { font-weight: 700; }
+.meta { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; color: var(--muted); font-size: .95rem; }
+.answered .meta { color: var(--ink); }
+.pager {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 2px solid var(--line);
+  padding: .75rem max(16px, env(safe-area-inset-right, 0px)) calc(.75rem + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.pager-in { max-width: 46rem; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.7fr; gap: .6rem; }
+.pager .btn { min-height: 60px; }
+.pager .next { flex-direction: column; gap: 0; }
+.pager .next small { font-weight: 400; font-size: .85rem; opacity: .9; }
+.pager .placeholder { visibility: hidden; }
+.foot { border-top: 1px solid var(--line); padding-top: 1rem; color: var(--muted); font-size: .95rem; }
+@media (max-width: 380px) { .grid { grid-template-columns: 1fr 1fr; gap: .6rem; } .tile { padding-inline: .4rem; } }
+
+/* main navigation: bottom bar on phones, sidebar on big screens */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 0 max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px));
+  box-shadow: 0 -2px 12px rgba(0,0,0,.06);
+}
+.tabbar ul { list-style: none; margin: 0 auto; padding: 0; max-width: 46rem; display: grid; grid-template-columns: repeat(3, 1fr); }
+.tabbar-link {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem;
+  min-height: 70px; padding: .45rem .25rem .4rem; text-decoration: none; color: var(--muted); font-weight: 700; font-size: .92rem;
+  border-top: 4px solid transparent;
+}
+.tabbar-link:hover { color: var(--accent); }
+.tabbar-link[aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
+.tab-icon svg { display: block; width: 1.75rem; height: 1.75rem; }
+.tab-badge {
+  position: absolute; top: .3rem; left: calc(50% + .45rem); min-width: 1.6rem; padding: 0 .4rem; border-radius: 999px;
+  background: var(--sun); color: var(--brand-teal); font-size: .8rem; line-height: 1.55; text-align: center; border: 2px solid var(--surface);
+}
+.wide-btn { width: 100%; min-height: 60px; }
+.empty { display: flex; flex-direction: column; align-items: center; gap: .6rem; text-align: center; }
+.pager { position: static; background: none; border: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; margin-top: .5rem; }
+.pager .pager-in { max-width: none; }
+#app { padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 900px) {
+  body { padding-left: 15.5rem; }
+  .tabbar {
+    top: 0; right: auto; bottom: 0; width: 15.5rem; border-top: 0; border-right: 1px solid var(--line); box-shadow: none;
+    padding: max(1.5rem, env(safe-area-inset-top, 0px)) .8rem 1.5rem max(.8rem, env(safe-area-inset-left, 0px));
+  }
+  .tabbar ul { grid-template-columns: 1fr; gap: .4rem; max-width: none; margin: 0; width: 100%; }
+  .tabbar-link { flex-direction: row; justify-content: flex-start; gap: .85rem; min-height: 60px; padding: .5rem 1rem; border-top: 0; border-radius: 12px; font-size: 1.1rem; }
+  .tabbar-link[aria-current="page"] { background: var(--accent-soft); }
+  .tab-badge { position: static; margin-left: auto; border: 0; }
+  #app { padding-bottom: 3rem; }
+}
+
+/* sidebar extras, shown on big screens only */
+.side-brand, .side-label, .side-foot { display: none; }
+@media (min-width: 900px) {
+  .tabbar { display: flex; flex-direction: column; gap: 1rem; background: var(--surface); }
+  .side-brand { display: flex; flex-direction: column; gap: .7rem; padding: 0 .4rem 1.1rem; border-bottom: 1px solid var(--line); }
+  .side-brand img { width: 100%; height: auto; border-radius: 12px; }
+  .side-brand strong { display: block; font-family: var(--display); font-weight: 600; font-size: 1.15rem; line-height: 1.25; }
+  .side-brand span { display: block; color: var(--muted); font-size: .85rem; line-height: 1.35; }
+  .side-label { display: block; margin: 0; padding: 0 .4rem; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .tabbar-link { position: relative; color: var(--ink); }
+  .tabbar-link .tab-icon { flex: none; width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center; background: var(--bg); color: var(--accent); }
+  .tabbar-link .tab-icon svg { width: 1.4rem; height: 1.4rem; }
+  .tabbar-link:hover { background: var(--bg); color: var(--ink); }
+  .tabbar-link[aria-current="page"] { background: var(--accent-soft); color: var(--ink); }
+  .tabbar-link[aria-current="page"]::before { content: ""; position: absolute; left: -.8rem; top: .6rem; bottom: .6rem; width: 5px; border-radius: 0 4px 4px 0; background: var(--accent); }
+  .tabbar-link[aria-current="page"] .tab-icon { background: var(--accent); color: var(--accent-ink); }
+  .side-foot { display: flex; flex-direction: column; gap: .5rem; margin-top: auto; padding: 1rem .4rem 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; line-height: 1.4; }
+  .side-foot strong { color: var(--ink); }
+  .top .logo { display: none; }
+}
+.skip { position: fixed; z-index: 30; left: max(12px, env(safe-area-inset-left, 0px)); top: -100px; background: var(--surface); color: var(--accent); font-weight: 700; padding: .8rem 1.1rem; border-radius: 10px; border: 2px solid var(--accent); }
+.skip:focus { top: calc(env(safe-area-inset-top, 0px) + 12px); }
+#app:focus { outline: none; }
+/* adding a request */
+.composer { display: flex; align-items: center; gap: .9rem; min-height: 76px; padding: .8rem 1rem; text-decoration: none; background: var(--surface); border: 2px solid var(--edge); border-radius: 16px; }
+.composer:hover { border-color: var(--accent); }
+.composer .plus, .avatar.plus { flex: none; width: 3rem; height: 3rem; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
+.avatar.plus { width: 4.6rem; height: 4.6rem; }
+.composer .plus svg { width: 1.5rem; height: 1.5rem; }
+.avatar.plus svg { width: 2.2rem; height: 2.2rem; }
+.composer-text strong { display: block; font-family: var(--display); font-weight: 600; font-size: 1.15rem; line-height: 1.3; }
+.composer-text span { display: block; color: var(--muted); font-size: .95rem; line-height: 1.35; }
+.composer .chev { margin-left: auto; }
+.form { display: flex; flex-direction: column; gap: 1.6rem; }
+.field { display: flex; flex-direction: column; gap: .45rem; border: 0; margin: 0; padding: 0; min-width: 0; }
+.field > label, .field legend { font-weight: 700; font-size: 1.15rem; line-height: 1.35; padding: 0; margin-bottom: .1rem; }
+.field .help { color: var(--muted); font-size: .98rem; }
+.input { width: 100%; min-height: 60px; padding: .7rem .9rem; border: 2px solid var(--edge); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; font-size: 1.12rem; }
+textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
+.input:focus { border-color: var(--accent); }
+.input[aria-invalid="true"] { border-color: var(--danger); }
+.choices { display: grid; gap: .65rem; }
+.choice { display: flex; align-items: center; gap: .85rem; min-height: 76px; padding: .8rem 1rem; border: 2px solid var(--edge); border-radius: 14px; background: var(--surface); cursor: pointer; }
+.choice input { flex: none; width: 1.6rem; height: 1.6rem; margin: 0; accent-color: var(--accent); }
+.choice-icon { flex: none; width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.choice-icon svg { width: 1.4rem; height: 1.4rem; }
+.choice-text strong { display: block; font-size: 1.1rem; line-height: 1.3; }
+.choice-text span { display: block; color: var(--muted); font-size: .95rem; line-height: 1.35; }
+.choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.choice:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+.error { color: var(--danger); font-weight: 700; }
+.thanks { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .9rem; padding-top: 1.5rem; }
+.thanks-icon { width: 5rem; height: 5rem; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
+.thanks-icon svg { width: 2.6rem; height: 2.6rem; }
+.thanks h1 { font-size: 1.9rem; }
+.thanks p { max-width: 30rem; font-size: 1.1rem; }
+/* ---- phone-first refinements ---- */
+.app-head { display: flex; align-items: center; justify-content: space-between; gap: .7rem; }
+.app-head .brand { gap: .7rem; min-width: 0; }
+.app-head .logo { width: 4.4rem; border-radius: 9px; }
+.app-head h1 { font-size: 1.45rem; line-height: 1.2; }
+.app-head .brand-text p { font-size: .9rem; }
+.size-toggle {
+  flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem;
+  min-width: 64px; min-height: 56px; padding: .3rem .5rem; border: 2px solid var(--edge); border-radius: 12px;
+  background: var(--surface); color: var(--ink); cursor: pointer;
+}
+.size-toggle:hover { border-color: var(--accent); }
+.size-glyph { font-family: var(--display); font-weight: 700; font-size: .95rem; line-height: 1; color: var(--accent); }
+.size-glyph span { font-size: 1.35rem; margin-left: .05rem; }
+.size-word { font-size: .78rem; font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.sample { border: 0; border-radius: 8px; padding: .3rem .75rem; background: var(--praise-soft); color: var(--ink); font-size: .85rem; font-weight: 700; text-align: center; }
+#app { gap: 1.1rem; padding-top: .75rem; }
+
+/* quieter "add a request" row, placed after the list */
+.composer { background: transparent; border: 2px dashed var(--edge); min-height: 68px; padding: .65rem .9rem; }
+.composer .plus { width: 2.5rem; height: 2.5rem; background: var(--accent-soft); color: var(--accent); }
+.composer .plus svg { width: 1.3rem; height: 1.3rem; }
+.composer-text span { color: var(--muted); font-size: .92rem; }
+.composer-text strong { font-size: 1.08rem; color: var(--accent); }
+
+/* person page: small initials, big name */
+.who { gap: .75rem; }
+.who .avatar { width: 2.8rem; height: 2.8rem; font-size: 1rem; }
+.who h1 { font-size: 1.7rem; line-height: 1.2; }
+.who p { font-size: .95rem; }
+.avatar.plus { width: 2.8rem; height: 2.8rem; }
+.avatar.plus svg { width: 1.4rem; height: 1.4rem; }
+
+/* one list per section, rows divided by lines */
+.cards { gap: 0; background: var(--surface); border: 1px solid var(--edge); border-radius: 16px; overflow: hidden; }
+.req { border: 0; border-radius: 0; border-top: 1px solid var(--line); background: transparent; padding: .95rem 1.1rem; }
+.req.is-new { border: 0; border-top: 1px solid var(--line); box-shadow: inset 6px 0 0 var(--new-line); }
+.req.answered { background: var(--praise-soft); }
+.cards > li:first-child { border-top: 0; }
+
+/* phone and tablet navigation: three clear buttons */
+@media (max-width: 899px) {
+  .tabbar { padding: .55rem max(10px, env(safe-area-inset-right, 0px)) calc(.55rem + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px)); border-top: 2px solid var(--line); }
+  .tabbar ul { gap: .5rem; }
+  .tabbar-link { min-height: 64px; gap: .15rem; padding: .35rem .25rem; border: 2px solid var(--edge); border-radius: 14px; background: var(--surface); color: var(--ink); font-size: 1rem; }
+  .tabbar-link:hover { border-color: var(--accent); color: var(--ink); }
+  .tabbar-link[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .tab-icon svg { width: 1.6rem; height: 1.6rem; }
+  .tab-badge { top: -.6rem; left: auto; right: .35rem; }
+  #app { padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px)); }
+}
+/* ---- add button, text size row, smaller initials on Today ---- */
+.add-btn {
+  flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem;
+  min-width: 76px; min-height: 60px; padding: .35rem .6rem; border-radius: 14px; text-decoration: none;
+  background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: .85rem; line-height: 1.2; text-align: center;
+}
+.add-btn:hover { filter: brightness(1.08); }
+.add-icon svg { display: block; width: 1.45rem; height: 1.45rem; }
+.size-row { display: flex; flex-direction: column; gap: .5rem; padding-bottom: .4rem; }
+.size-row > p { font-weight: 700; color: var(--ink); font-size: 1rem; }
+.size-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.size-opt { min-height: 56px; border-radius: 12px; border: 2px solid var(--edge); background: var(--surface); color: var(--ink); font-weight: 700; cursor: pointer; padding: .3rem .4rem; line-height: 1.15; }
+.size-opt.s1 { font-size: 18px; } .size-opt.s2 { font-size: 21px; } .size-opt.s3 { font-size: 24px; }
+.size-opt[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.foot { display: flex; flex-direction: column; gap: 1rem; }
+.row-link .avatar { width: 2.3rem; height: 2.3rem; font-size: .82rem; }
+.row-link { gap: .75rem; min-height: 68px; }
+.app-head .logo { width: 3.6rem; }
+.app-head h1 { font-size: 1.32rem; }
+/* ---- one-line add button, answered flow ---- */
+.add-btn { flex-direction: row; gap: .35rem; min-height: 52px; min-width: 0; padding: .45rem .95rem; font-size: 1rem; white-space: nowrap; }
+.add-icon { font-size: 1.35rem; font-weight: 700; line-height: 1; }
+.answer-btn { align-self: flex-start; margin-top: .25rem; min-height: 48px; padding: .4rem 1rem; border-radius: 999px; border: 2px solid var(--edge); background: var(--surface); color: var(--accent); font-weight: 700; font-size: .98rem; cursor: pointer; }
+.answer-btn:hover { border-color: var(--accent); }
+.page-h1 { font-size: 1.6rem; line-height: 1.2; }
+.quote { background: var(--surface); border: 1px solid var(--edge); border-left: 6px solid var(--accent); border-radius: 12px; padding: .85rem 1rem; display: flex; flex-direction: column; gap: .3rem; }
+.linklike { align-self: center; background: none; border: 0; min-height: 48px; padding: .4rem .6rem; color: var(--accent); font-weight: 700; font-size: 1rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+/* ---- tappable request rows ---- */
+.req.req-tap { padding: 0; }
+.req-link { display: flex; align-items: center; gap: .75rem; min-height: 64px; padding: .95rem 1rem .95rem 1.1rem; color: inherit; text-decoration: none; }
+.req-link:hover { background: var(--accent-soft); }
+.req-link:focus-visible { outline-offset: -3px; }
+.req-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .45rem; }
+.req-link .req-text { display: block; }
+.req-link .chev { flex: none; }
+/* ---- one labelled "answered" button under the list ---- */
+.answered-btn { width: 100%; min-height: 60px; gap: .55rem; border-color: var(--new-line); background: var(--praise-soft); color: var(--ink); font-size: 1.08rem; }
+.answered-btn:hover { border-color: var(--accent); }
+.answered-icon { display: grid; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: 50%; background: var(--sun); color: var(--brand-teal); }
+.answered-icon svg { width: 1.1rem; height: 1.1rem; }
+.choice-text strong { overflow-wrap: anywhere; }
+/* ---- question + raised button for answered prayers ---- */
+.answer-box { display: flex; flex-direction: column; gap: .75rem; padding: 1rem; border-radius: 16px; background: var(--praise-soft); }
+.answer-q { font-weight: 700; font-size: 1.12rem; line-height: 1.35; }
+.raised { box-shadow: 0 4px 0 var(--brand-teal-dark, #173B52), 0 6px 12px rgba(0,0,0,.18); transform: translateY(-1px); }
+.raised:active { transform: translateY(3px); box-shadow: 0 1px 0 #173B52; }
+@media (prefers-reduced-motion: reduce) { .raised, .raised:active { transform: none; } }
+/* ---- header: group name and bigger logo on phones ---- */
+.app-head2 { display: flex; flex-direction: column; gap: .9rem; }
+.brand-row { display: flex; align-items: center; gap: .85rem; padding-bottom: .85rem; border-bottom: 3px solid var(--sun); }
+.brand-row .logo { flex: none; width: 6.4rem; height: auto; border-radius: 10px; }
+.brand-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.brand-name span:first-child { font-family: var(--display); font-weight: 600; font-size: 1.12rem; color: var(--ink); }
+.brand-name span:last-child { font-weight: 700; font-size: 1rem; color: var(--accent); }
+.title-row2 { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.title-block { min-width: 0; }
+.title-block h1 { font-size: 1.6rem; line-height: 1.2; }
+.title-block p { color: var(--muted); font-size: .98rem; }
+@media (max-width: 380px) { .brand-row .logo { width: 5.2rem; } .title-block h1 { font-size: 1.4rem; } }
+@media (min-width: 900px) {
+  .brand-row { display: none; }
+  .title-block h1 { font-size: 2rem; }
+}
+/* ---- calmer: quiet navigation, yellow only means "new" ---- */
+@media (max-width: 899px) {
+  .tabbar { border-top: 1px solid var(--line); box-shadow: none; padding-top: .35rem; padding-bottom: calc(.35rem + env(safe-area-inset-bottom, 0px)); }
+  .tabbar ul { gap: .35rem; }
+  .tabbar-link { border: 0; background: transparent; color: var(--muted); min-height: 60px; border-radius: 14px; font-size: .95rem; }
+  .tabbar-link:hover { background: var(--bg); border: 0; color: var(--ink); }
+  .tabbar-link[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+  .tab-badge { top: .1rem; right: auto; left: calc(50% + .45rem); }
+}
+.rows { border: 1px solid var(--edge); }
+.brand-row { border-bottom: 1px solid var(--line); }
+/* ---- praise page ---- */
+.praise-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--edge); border-radius: 16px; overflow: hidden; }
+.praise-row { display: flex; align-items: flex-start; gap: .8rem; padding: 1rem 1.05rem; border-top: 1px solid var(--line); }
+.praise-list > li:first-child { border-top: 0; }
+.praise-av { flex: none; width: 2.5rem; height: 2.5rem; font-size: .88rem; background: var(--sun); color: var(--brand-teal); margin-top: .1rem; }
+.praise-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .3rem; }
+.praise-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .1rem .6rem; }
+.praise-head strong { font-family: var(--display); font-weight: 600; font-size: 1.08rem; line-height: 1.3; }
+.praise-date { color: var(--muted); font-size: .9rem; white-space: nowrap; }
+.praise-kind { display: inline-flex; align-items: center; gap: .3rem; align-self: flex-start; padding: .05rem .55rem; border-radius: 999px; background: var(--praise-soft); color: var(--praise); font-weight: 700; font-size: .84rem; }
+.praise-icon svg { display: block; width: .9rem; height: .9rem; }
+.praise-text { font-size: 1.15rem; line-height: 1.45; overflow-wrap: anywhere; }
+.praise-was { color: var(--muted); font-size: .95rem; line-height: 1.4; }
+.praise-was span { font-weight: 700; }
+/* ---- warmth: rounder, softer buttons and surfaces ---- */
+.btn { border: 0; border-radius: 999px; background: var(--accent-soft); color: var(--accent); padding: .55rem 1.3rem; box-shadow: none; }
+.btn:hover { border: 0; filter: brightness(.97); }
+.btn.primary, .add-btn { background: var(--accent); color: var(--accent-ink); box-shadow: 0 3px 10px rgba(38, 94, 128, .28); }
+.add-btn { border-radius: 999px; padding: .5rem 1.1rem; }
+.raised { transform: none; box-shadow: 0 4px 12px rgba(38, 94, 128, .32); }
+.raised:active { transform: translateY(1px); box-shadow: 0 1px 4px rgba(38, 94, 128, .3); }
+.size-opt { border: 0; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.size-opt[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+.rows, .cards, .praise-list, .tile, .answer-box { border-radius: 20px; }
+.tile { border-width: 1.5px; }
+.choice { border-radius: 18px; border-width: 1.5px; }
+.input { border-radius: 14px; border-width: 1.5px; }
+.tabbar-link { border-radius: 18px; }
+.thanks-icon { box-shadow: 0 6px 18px rgba(38, 94, 128, .25); }
+:root[data-theme="dark"] .btn.primary, :root[data-theme="dark"] .add-btn, :root[data-theme="dark"] .raised { box-shadow: 0 3px 10px rgba(0, 0, 0, .4); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary, :root:not([data-theme="light"]) .add-btn, :root:not([data-theme="light"]) .raised { box-shadow: 0 3px 10px rgba(0, 0, 0, .4); } }
+/* ---- restrained buttons, in the spirit of iOS and Facebook ---- */
+.btn, .add-btn, .size-opt { border-radius: 12px; box-shadow: none !important; font-weight: 600; }
+.btn.primary, .raised { box-shadow: none !important; transform: none; }
+.raised:active, .btn:active, .add-btn:active { transform: none; filter: brightness(.94); }
+.add-btn { background: var(--accent-soft); color: var(--accent); padding: .5rem .95rem; min-height: 48px; font-size: 1rem; }
+.add-icon { font-size: 1.25rem; font-weight: 600; }
+.topbar > .btn:first-child { background: transparent; padding: .5rem .35rem; min-height: 48px; margin-left: -.35rem; color: var(--accent); font-size: 1.08rem; }
+.topbar > .btn:first-child:hover { background: var(--accent-soft); }
+.wide-btn { border-radius: 12px; }
+.thanks-icon { box-shadow: none; }
+.size-opt[aria-pressed="true"] { font-weight: 700; }
+/* ---- buttons that read as buttons: solid for adding, outlined for secondary ---- */
+.add-btn { background: var(--accent); color: var(--accent-ink); }
+.btn { background: var(--surface); color: var(--accent); border: 1.5px solid var(--accent); }
+.btn:hover { border: 1.5px solid var(--accent); background: var(--accent-soft); filter: none; }
+.btn.primary { border-color: var(--accent); }
+.topbar > .btn:first-child { border: 0; }
+.topbar > .btn:first-child:hover { border: 0; }
+.size-opt { background: var(--surface); color: var(--accent); border: 1.5px solid var(--accent); }
+.size-opt[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+/* ---- clearer forms ---- */
+.need { display: inline-block; margin-left: .35rem; padding: 0 .45rem; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); font-size: .8rem; font-weight: 600; line-height: 1.6; vertical-align: .1em; }
+.count { color: var(--muted); font-size: .92rem; }
+.restored { background: var(--accent-soft); color: var(--ink); border-radius: 10px; padding: .5rem .75rem; font-size: .95rem; }
+.sub-field { margin-top: .7rem; }
+.error-summary { border: 2px solid var(--danger); border-radius: 14px; padding: .9rem 1rem; background: var(--surface); display: flex; flex-direction: column; gap: .4rem; }
+.error-summary:focus { outline: 3px solid var(--focus); outline-offset: 3px; }
+.error-title { font-weight: 700; color: var(--danger); font-size: 1.05rem; }
+.error-summary ul { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: .25rem; }
+.error-summary a { color: var(--accent); font-weight: 700; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
+[hidden] { display: none !important; }
+/* ---- the tap target says what it does ---- */
+.row-go { flex: none; display: flex; align-items: center; gap: .15rem; color: var(--accent); font-weight: 700; font-size: 1rem; }
+.row-go .chev { font-size: 1.6rem; line-height: 1; }
+.tile-count { color: var(--accent); font-weight: 700; }
+.hint.lead { color: var(--ink); font-size: 1.02rem; }
+.topbar .add-btn { margin-left: auto; }
+/* ---- stacked header on phones; instructions in blue ---- */
+@media (max-width: 599px) {
+  .title-row2 { flex-direction: column; align-items: flex-start; gap: .8rem; }
+  .title-row2 .add-btn { align-self: flex-start; }
+}
+.hint.lead { color: var(--accent); font-weight: 700; }
+/* ---- a real button inside every card and row ---- */
+.tile { padding-bottom: .8rem; }
+.tile-count {
+  margin-top: auto; width: 100%; min-height: 42px; display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--accent); border-radius: 10px; background: var(--surface); color: var(--accent);
+  font-weight: 700; font-size: .95rem; line-height: 1.2; padding: .3rem .5rem;
+}
+.tile:hover .tile-count, .tile:focus-visible .tile-count { background: var(--accent-soft); }
+.row-go { border: 1.5px solid var(--accent); border-radius: 10px; min-height: 40px; padding: .2rem .55rem .2rem .75rem; background: var(--surface); }
+.row-link:hover .row-go, .row-link:focus-visible .row-go { background: var(--accent-soft); }
+.row-go .chev { font-size: 1.35rem; }
+.row-go { padding: .15rem .45rem .15rem .6rem; font-size: .95rem; gap: .2rem; }
+.row-go .chev { font-size: 1.2rem; }
+.row-link { gap: .6rem; padding-right: .7rem; }
+.row-name { font-size: 1.04rem; }
+.row-link .avatar { width: 2.2rem; height: 2.2rem; }
+/* ---- finesse: card footer strip, soft chip on rows ---- */
+.tile { padding: .9rem .6rem 0; overflow: hidden; gap: .35rem; }
+.tile-count {
+  margin: auto -.6rem 0; width: calc(100% + 1.2rem); min-height: 46px; padding: .45rem .5rem;
+  border: 0; border-top: 1px solid var(--line); border-radius: 0; background: var(--accent-soft);
+  color: var(--accent); font-weight: 700; font-size: .95rem;
+}
+.tile .avatar { margin-top: .15rem; }
+.tile-name { margin-bottom: .55rem; }
+.tile:hover .tile-count, .tile:focus-visible .tile-count { background: var(--accent); color: var(--accent-ink); }
+.row-go { border: 0; border-radius: 999px; background: var(--accent-soft); min-height: 36px; padding: .2rem .55rem .2rem .8rem; font-size: .95rem; }
+.row-link:hover .row-go, .row-link:focus-visible .row-go { background: var(--accent); color: var(--accent-ink); }
+/* ---- breathing room in today's list, inset dividers like iOS ---- */
+.row-link { min-height: 80px; padding: .95rem .8rem .95rem 1rem; gap: .85rem; }
+.rows li + li .row-link { border-top: 0; }
+.rows li { position: relative; }
+.rows li + li::before { content: ""; position: absolute; top: 0; right: 0; left: calc(1rem + 2.2rem + .85rem); border-top: 1px solid var(--line); }
+.row-main { gap: .2rem; }
+.row-link { padding: .9rem .7rem .9rem .9rem; gap: .7rem; }
+.rows li + li::before { left: calc(.9rem + 2.2rem + .7rem); }
+.row-preview { -webkit-line-clamp: 2; line-height: 1.35; }
+/* ---- tablets (iPad mini and iPad, upright and sideways) ---- */
+@media (min-width: 600px) and (max-width: 1279px) {
+  html { font-size: calc(20.5px * var(--scale)); }
+}
+@media (min-width: 600px) and (max-width: 899px) {
+  #app { max-width: 38rem; }
+  .tabbar ul { max-width: 30rem; }
+  .tabbar-link { min-height: 62px; }
+  .brand-row .logo { width: 7rem; }
+}
+.ask-box { background: var(--surface); border: 1px solid var(--line); }
+/* ---- person page: one quiet actions card ---- */
+.actions-card { background: var(--surface); border: 1px solid var(--edge); border-radius: 20px; overflow: hidden; }
+.actions-title { padding: .85rem 1.1rem .5rem; font-weight: 700; font-size: 1.02rem; color: var(--muted); }
+.action-row { display: flex; align-items: center; gap: .85rem; min-height: 64px; padding: .7rem 1rem .7rem 1.1rem; text-decoration: none; color: var(--ink); border-top: 1px solid var(--line); }
+.action-row:hover { background: var(--accent-soft); }
+.action-row:focus-visible { outline-offset: -3px; }
+.action-icon { flex: none; width: 2.3rem; height: 2.3rem; border-radius: 50%; display: grid; place-items: center; }
+.action-icon svg { width: 1.2rem; height: 1.2rem; }
+.action-icon.star { background: var(--sun); color: var(--brand-teal); }
+.action-icon.plus { background: var(--accent); color: var(--accent-ink); }
+.action-label { flex: 1; min-width: 0; font-weight: 700; font-size: 1.08rem; color: var(--accent); }
+.action-row .chev { font-size: 1.6rem; color: var(--accent); }
+/* ---- one "Aa" text size control ---- */
+.brand-row .brand-name { flex: 1; }
+.aa-btn {
+  flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .05rem;
+  min-width: 62px; min-height: 54px; padding: .3rem .55rem; border-radius: 12px; border: 1px solid var(--edge);
+  background: var(--surface); color: var(--ink); font-weight: 600; font-size: .78rem; line-height: 1.15; cursor: pointer;
+}
+.aa-btn .aa { font-family: var(--display); font-weight: 600; font-size: 1.3rem; line-height: 1; color: var(--accent); }
+.aa-btn:hover, .aa-btn[aria-expanded="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.size-panel { background: var(--surface); border: 1px solid var(--edge); border-radius: 18px; padding: 1rem; display: flex; flex-direction: column; gap: .7rem; }
+.size-panel:focus { outline: 3px solid var(--focus); outline-offset: 3px; }
+.size-panel-title { font-weight: 700; font-size: 1.08rem; }
+.side-size { display: flex; flex-direction: column; gap: .45rem; padding-top: .4rem; }
+.side-size-title { font-weight: 700; color: var(--ink); }
+.side-size .size-opts { grid-template-columns: 1fr; gap: .4rem; }
+.side-size .size-opt { min-height: 48px; text-align: left; padding-left: 1rem; }
+@media (min-width: 900px) { .app-head2 .size-panel { display: none; } }
+@media (min-width: 900px) { .tabbar { overflow-y: auto; } }
+/* ---- text size follows the phone's own setting, like Apple's apps ----
+   iPhone: Settings > Display & Text Size > Larger Text (Dynamic Type). Android follows its font size setting by itself. */
+@supports (font: -apple-system-body) {
+  @media (max-width: 599px) and (pointer: coarse) {
+    html { font: -apple-system-body; }
+    body { font-size: 1.1rem; }
+  }
+}
+.choice.check input { border-radius: 6px; }
+.choice:has(input[type="checkbox"]:checked) { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.moved-list { margin: 0; padding: .8rem 1rem .8rem 2rem; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; text-align: left; align-self: stretch; display: flex; flex-direction: column; gap: .35rem; font-size: 1.05rem; }
+/* ---- required / optional said plainly, in the label ---- */
+.need { display: inline; margin-left: .3rem; padding: 0; border: 0; background: none; border-radius: 0;
+  font-size: .92em; font-weight: 700; line-height: inherit; vertical-align: baseline; color: var(--accent); }
+.need.opt { color: var(--muted); font-weight: 600; }
+/* ---- bottom bar: every tab looks like a real choice ---- */
+@media (max-width: 899px) {
+  .tabbar-link { color: var(--ink); font-size: 1rem; font-weight: 700; }
+  .tab-icon svg { width: 1.8rem; height: 1.8rem; }
+  .tabbar-link[aria-current="page"] { color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
+}
+.month-av { width: 2.2rem; height: 2.2rem; background: var(--sun); color: var(--brand-teal); }
+.month-av svg { width: 1.1rem; height: 1.1rem; }
+.rows.months .row-preview { -webkit-line-clamp: 1; }
+.new-key { color: var(--ink); margin-top: -.6rem; }
+.new-key .badge { margin-right: .2rem; vertical-align: .05em; }
+/* ---- add button back on the right on phones, with room to breathe ---- */
+@media (max-width: 599px) {
+  .title-row2 { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .title-row2 .title-block { flex: 1; min-width: 0; }
+  .title-row2 .title-block h1 { font-size: 1.5rem; }
+  .title-row2 .add-btn { align-self: flex-start; margin-top: .15rem; min-height: 48px; padding: .45rem .85rem; font-size: .95rem; }
+}
+@media (max-width: 359px) {
+  .title-row2 { flex-direction: column; align-items: flex-start; gap: .8rem; }
+}
+/* ---- members: one short instruction line, roomier grid ---- */
+.members-hint { color: var(--ink); font-size: 1rem; line-height: 1.7; }
+.members-hint .lead-text { color: var(--accent); font-weight: 700; }
+.members-hint .badge { vertical-align: .05em; }
+.grid { gap: 1rem; }
+@media (min-width: 600px) { .grid { gap: 1.25rem; } }
+@media (min-width: 900px) { .grid { gap: 1.4rem; } }
+@media (max-width: 599px) { .grid { row-gap: 1.5rem; column-gap: 1.15rem; } }
+@media (max-width: 359px) { .grid { column-gap: .85rem; } }
+.list-note { color: var(--muted); font-size: .95rem; text-align: center; padding-top: .25rem; }
+/* ---- a deep blue bottom bar that clearly reads as navigation ---- */
+@media (max-width: 899px) {
+  .tabbar { background: var(--bar-bg); border-top: 0; box-shadow: 0 -2px 10px rgba(0, 0, 0, .12); }
+  .tabbar-link { color: var(--bar-ink); }
+  .tabbar-link:hover { background: rgba(255, 255, 255, .14); color: var(--bar-ink); }
+  .tabbar-link[aria-current="page"] { background: var(--bar-active-bg); color: var(--bar-active-ink); box-shadow: none; }
+  .tab-badge { border-color: var(--bar-bg); }
+  .tabbar-link[aria-current="page"] .tab-badge { border-color: var(--bar-active-bg); }
+  .tabbar-link:focus-visible { outline-color: var(--sun); }
+}
+.empty-note { background: var(--surface); border: 1px dashed var(--edge); border-radius: 16px; padding: 1.1rem; color: var(--muted); text-align: center; }
+/* ---- the live app: loading, messages and the manager page ---- */
+.loading { padding: 3rem 0; text-align: center; color: var(--muted); font-size: 1.1rem; }
+@media (max-width: 899px) { .tabbar ul { grid-template-columns: repeat(var(--tabs, 3), 1fr); } }
+.notice-bar {
+  position: fixed; z-index: 40; left: 50%; transform: translateX(-50%);
+  top: calc(env(safe-area-inset-top, 0px) + 12px); width: min(34rem, calc(100% - 32px));
+  background: var(--surface); color: var(--ink); border: 2px solid var(--danger); border-radius: 14px;
+  padding: .8rem 1rem; font-weight: 700; box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
+}
+.notice-bar.ok { border-color: var(--accent); }
+.link-box { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; background: var(--surface); border: 1px solid var(--edge); border-radius: 16px; padding: .8rem 1rem; }
+.link-text { flex: 1 1 14rem; min-width: 0; font-weight: 700; color: var(--accent); overflow-wrap: anywhere; }
+.manage-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--edge); border-radius: 20px; overflow: hidden; }
+.manage-row { display: flex; flex-direction: column; gap: .45rem; padding: 1rem 1.1rem; border-top: 1px solid var(--line); }
+.manage-list > li:first-child { border-top: 0; }
+.manage-row.dim .req-text, .manage-row.dim .req-name { opacity: .7; }
+.manage-row.editing { background: var(--accent-soft); gap: .8rem; }
+.manage-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.manage-actions .btn { min-height: 48px; padding: .4rem 1rem; }
+.tag.off { background: var(--bg); color: var(--muted); border: 1px solid var(--edge); }
+.member-row { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; padding: .7rem 1rem; border-top: 1px solid var(--line); }
+.member-row .avatar { width: 2.4rem; height: 2.4rem; font-size: .85rem; }
+.member-name { flex: 1; min-width: 6rem; font-weight: 700; }
+.confirm-q { font-weight: 700; }
+.member-add { display: flex; flex-direction: column; gap: .7rem; align-items: flex-start; }
+.member-add .field { width: 100%; }
+</style>
+</head>
+<body>
+<main id="app" tabindex="-1"></main>
+<script>
+function startApp(DATA) {
+  var LOGO = "/app/logo.webp";
+  var app = document.getElementById("app");
+  document.documentElement.lang = "en";
+  var ui = { lastSlug: null, deck: 0, todayAsList: false };
+
+  function h(tag, props) {
+    var el = document.createElement(tag);
+    if (props) Object.keys(props).forEach(function (k) {
+      var v = props[k];
+      if (v == null || v === false) return;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else if (k === "html") el.innerHTML = v;
+      else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? "" : v);
+    });
+    for (var i = 2; i < arguments.length; i++) add(el, arguments[i]);
+    return el;
+  }
+  function add(el, c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) { c.forEach(function (x) { add(el, x); }); return; }
+    el.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  function fmt(iso, long) {
+    var p = iso.split("-").map(Number), d = new Date(p[0], p[1] - 1, p[2]);
+    return d.toLocaleDateString("en-US", long ? { weekday: "long", month: "long", day: "numeric" } : { weekday: "short", month: "short", day: "numeric" });
+  }
+  function fmtShortDate(iso) { var p = iso.split("-").map(Number); return new Date(p[0], p[1] - 1, p[2]).toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+  function slug(s) { return "p-" + s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+  function initials(s) {
+    var w = s.replace(/[^A-Za-z\s]/g, " ").trim().split(/\s+/);
+    return ((w[0] || "")[0] + (w.length > 1 ? w[w.length - 1][0] : "")).toUpperCase();
+  }
+
+  // ---------- shape the data ----------
+  // Requests added on this site (source "web") never move the study date; they count as new
+  // until the next study's requests arrive.
+  var latest, people, everyone, bySlug, praiseItems, today, isToday;
+  function prepare() {
+    DATA.sample = false;
+    DATA.updated = DATA.updated || todayISO();
+    DATA.items.forEach(function (it) { it.originalNote = it.note; });
+  }
+  prepare();
+  function shape() {
+    latest = DATA.items.filter(function (it) { return !it.removed && it.kind === "request" && !it.answered && it.source !== "web"; })
+      .reduce(function (m, it) { return it.added > m ? it.added : m; }, "");
+    people = {}; var order = [];
+    DATA.items.forEach(function (it) {
+      if (it.removed) return;
+      if (!people[it.name]) { people[it.name] = { name: it.name, slug: slug(it.name), open: [], answered: [], praise: [] }; order.push(it.name); }
+      var p = people[it.name];
+      if (it.kind === "praise") p.praise.push(it); else if (it.answered) p.answered.push(it); else p.open.push(it);
+    });
+    bySlug = {};
+    (DATA.members || []).forEach(function (n) { if (!people[n]) { people[n] = { name: n, slug: slug(n), open: [], answered: [], praise: [] }; order.push(n); } });
+    everyone = order.map(function (n) { return people[n]; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name); });
+    everyone.forEach(function (p) {
+      p.open.sort(function (a, b) { return b.added.localeCompare(a.added); });
+      p.answered.sort(function (a, b) { return b.answered.localeCompare(a.answered); });
+      p.isNew = p.open.some(isNewItem);
+      bySlug[p.slug] = p;
+    });
+    praiseItems = DATA.items.filter(function (it) { return !it.removed && (it.kind === "praise" || it.answered); })
+      .sort(function (a, b) { return (b.answered || b.added).localeCompare(a.answered || a.added); });
+    today = everyone.filter(function (p) { return p.isNew; });
+    isToday = latest === todayISO();
+  }
+  function isNewItem(it) { return it.kind === "request" && !it.answered && it.added >= latest; }
+  function todayISO() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function firstName(name) { return name.split(" ")[0]; }
+  shape();
+  function visible() { return everyone; }
+
+  // ---------- pieces ----------
+  // Text size: three named buttons at the bottom of each page, so the way back is always visible.
+  var SIZES = [["1", "Normal"], ["2", "Larger"], ["3", "Largest"]];
+  // Text size lives in one place ("Aa" at the top of the main pages, or the sidebar on computers)
+  // and applies to every page.
+  function setSize(v) {
+    document.documentElement.dataset.size = v;
+    try { localStorage.setItem("g3-size", v); } catch (e) {}
+    document.querySelectorAll(".side-size .size-opt").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === v)); });
+    route(true);
+  }
+  function sizeOptions() {
+    var cur = document.documentElement.dataset.size || "1";
+    return h("div", { class: "size-opts" }, SIZES.map(function (o) {
+      return h("button", { type: "button", class: "size-opt s" + o[0], "data-v": o[0], "aria-pressed": String(cur === o[0]),
+        title: "Show the words in " + o[1].toLowerCase() + " size", onclick: function () { setSize(o[0]); } }, o[1]);
+    }));
+  }
+  function aaButton() {
+    return h("button", { type: "button", class: "aa-btn", id: "aa-btn", "aria-expanded": String(!!ui.sizeOpen), "aria-controls": "size-panel",
+        title: "Make the words bigger or smaller",
+        onclick: function () { ui.sizeOpen = !ui.sizeOpen; route(true); var b = document.getElementById(ui.sizeOpen ? "size-panel" : "aa-btn"); if (b) b.focus(); } },
+      h("span", { class: "aa", "aria-hidden": "true", text: "Aa" }), h("span", { text: "Text size" }));
+  }
+  function sizePanel() {
+    return h("div", { class: "size-panel", id: "size-panel", hidden: !ui.sizeOpen, role: "group", "aria-labelledby": "size-panel-title", tabindex: "-1" },
+      h("p", { class: "size-panel-title", id: "size-panel-title", text: "Text size" }),
+      h("p", { class: "help", text: "Pick the size that is easiest to read. It applies to every page." }),
+      sizeOptions(),
+      h("button", { type: "button", class: "btn wide-btn", title: "Close the text size choices",
+        onclick: function () { ui.sizeOpen = false; route(true); var b = document.getElementById("aa-btn"); if (b) b.focus(); } }, "Done"));
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && ui.sizeOpen) { ui.sizeOpen = false; route(true); var b = document.getElementById("aa-btn"); if (b) b.focus(); }
+  });
+  function addButton(forName) {
+    return h("a", { class: "add-btn", href: "#add", onclick: function () { ui.addFor = forName || null; ui.added = null; } },
+      h("span", { class: "add-icon", "aria-hidden": "true", text: "+" }), h("span", { text: forName ? "Add a prayer for " + firstName(forName) : "Add a prayer" }));
+  }
+  var PLUS = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+  var ICON_TODAY = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M8.5 14.5l2.3 2.3 4.7-4.6"/></svg>';
+  var ICON_PEOPLE = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.2c2.9.2 5 2.3 5 5.3"/></svg>';
+
+  var TABS = [
+    { key: "today", label: "New", icon: ICON_TODAY, count: today.length, countLabel: " new" },
+    { key: "everyone", label: "Members", icon: ICON_PEOPLE, count: 0 },
+    { key: "praise", label: "Praise", icon: STAR, count: 0 },
+  ];
+  var ICON_GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+  if (DATA.role === "manager") TABS.push({ key: "manage", label: "Manage", icon: ICON_GEAR, count: 0 });
+  var LIST_NAMES = { today: "New prayer requests", everyone: "Members", praise: "Praise", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage" };
+
+  // Always-visible navigation: a bar along the bottom on phones, a sidebar on big screens.
+  var tabbar = h("nav", { class: "tabbar", "aria-label": "Main" },
+    h("div", { class: "side-brand" },
+      h("img", { src: LOGO, width: "720", height: "405", alt: "" }),
+      h("div", null, h("strong", { text: "Prayer Requests" }), h("span", { text: "Bible & Breakfast" }), h("span", { text: "Group 3" }))),
+    h("p", { class: "side-label", text: "Pages" }),
+    h("ul", { style: "--tabs:" + TABS.length }, TABS.map(function (t) {
+    return h("li", null, h("a", { class: "tabbar-link", href: "#" + t.key, id: "nav-" + t.key },
+      h("span", { class: "tab-icon", html: t.icon }),
+      h("span", { class: "tab-label", text: t.label }),
+      t.count ? h("span", { class: "tab-badge" }, String(t.count), h("span", { class: "sr", text: t.countLabel })) : null));
+  })),
+    h("div", { class: "side-foot" },
+      h("p", null, "Updated", h("br"), h("strong", { text: fmt(DATA.updated, true) })),
+      h("p", { text: "New requests are added after each Mon, Wed and Fri study." })));
+  var skip = h("a", { class: "skip", href: "#app", onclick: function (e) { e.preventDefault(); var t = document.getElementById("page-title"); if (t) t.focus(); } }, "Skip to main content");
+  document.body.insertBefore(tabbar, app);
+  document.body.insertBefore(skip, tabbar);
+  function updateBadge() {
+    var el = document.querySelector("#nav-today .tab-badge");
+    if (!el && today.length) { el = h("span", { class: "tab-badge" }); document.getElementById("nav-today").append(el); }
+    if (el) { el.hidden = !today.length; el.replaceChildren(String(today.length), h("span", { class: "sr", text: " new" })); }
+  }
+  function setNav(active) {
+    TABS.forEach(function (t) {
+      var el = document.getElementById("nav-" + t.key);
+      if (t.key === active) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
+    });
+  }
+
+  function header(title, sub, action) {
+    return h("header", { class: "app-head2" },
+      h("div", { class: "brand-row" },
+        h("img", { class: "logo", src: LOGO, width: "720", height: "405", alt: "" }),
+        h("p", { class: "brand-name" }, h("span", { text: "Bible & Breakfast" }), h("span", { text: "Group 3" }))),
+      h("div", { class: "title-row2" },
+        h("div", { class: "title-block" },
+          h("h1", { id: "page-title", tabindex: "-1", text: title }),
+          h("p", { text: sub })),
+        action === "praise" ? praiseButton() : action === "none" ? null : addButton()));
+  }
+  function sampleNote() { return null; }
+  function footer() { return null; }
+
+  function todayPage() {
+    return [
+      sampleNote(),
+      header("New Prayer Requests", latest ? "From the study on " + fmt(latest, true) : "Shared at our Bible studies", "none"),
+      today.length ? h("section", { class: "top", "aria-label": "New prayer requests, " + plural(today.length, "person", "people") },
+        h("p", { class: "hint lead", text: "Tap a name to read their prayer request." }),
+        todayRows()) :
+        h("div", { class: "empty" }, h("strong", { text: "No new prayer requests yet." }),
+          h("p", { text: "New requests appear here after each Bible study." }),
+          h("a", { class: "btn primary", href: "#everyone" }, "See all members")),
+      today.length ? h("a", { class: "btn wide-btn", href: "#everyone" }, "See all members ›") : null,
+      h("p", { class: "list-note", text: "This list is updated after each Monday, Wednesday and Friday study." }),
+      footer()];
+  }
+  function todayRows() {
+    return h("ul", { class: "rows" }, today.map(function (p) {
+      var fresh = freshFor(p), more = fresh.length - 1;
+      return h("li", null, h("a", { class: "row-link", href: "#" + p.slug, id: "row-" + p.slug,
+          "aria-label": p.name + ". New: " + fresh.map(function (it) { return it.text; }).join(". ") },
+        h("span", { class: "avatar", "aria-hidden": "true", text: initials(p.name) }),
+        h("span", { class: "row-main", "aria-hidden": "true" },
+          h("span", { class: "row-name", text: p.name }),
+          h("span", { class: "row-preview", text: fresh[0].text }),
+          more > 0 ? h("span", { class: "row-more", text: "+ " + more + " more" }) : null),
+        h("span", { class: "row-go", "aria-hidden": "true" }, "Read", h("span", { class: "chev", text: "›" }))));
+    }));
+  }
+  function freshFor(p) { return p.open.filter(isNewItem); }
+
+  function everyonePage() {
+    return [
+      sampleNote(),
+      header("Members", plural(everyone.length, "member", "members") + " \u00B7 A to Z"),
+      h("p", { class: "members-hint" },
+        h("span", { class: "lead-text", text: "Tap a name to see their prayer requests." }),
+        latest && today.length ? [" ", h("span", { class: "badge", text: "New" }), " marks a new request."] : null),
+      h("ul", { class: "grid" }, everyone.map(function (p) {
+        return h("li", null, h("a", { class: "tile" + (p.isNew ? " is-new" : ""), href: "#" + p.slug, id: "tile-" + p.slug,
+            "aria-label": p.name + ", " + plural(p.open.length, "prayer request", "prayer requests") + (p.isNew ? ", new" : "") },
+          p.isNew ? h("span", { class: "badge", "aria-hidden": "true", text: "New" }) : null,
+          h("span", { class: "avatar", "aria-hidden": "true", text: initials(p.name) }),
+          h("span", { class: "tile-name", "aria-hidden": "true", text: p.name }),
+          h("span", { class: "tile-count", "aria-hidden": "true", text: p.open.length ? "See " + plural(p.open.length, "request", "requests") + " \u203A" : "No requests yet \u203A" })));
+      })),
+      footer()];
+  }
+
+  function reqCard(it, showName, canUpdate) {
+    var answered = !!it.answered || it.kind === "praise";
+    var isNew = !answered && isNewItem(it);
+    var meta = [];
+    if (isNew) meta.push(h("span", { class: "badge", text: "New" }));
+    if (it.answered) meta.push(h("span", { text: "Asked " + fmt(it.added) + " · Answered " + fmt(it.answered) }));
+    else meta.push(h("span", { text: (it.kind === "praise" ? "Shared " : "Asked ") + fmt(it.added) }));
+    if (canUpdate) {
+      return h("li", { class: "req req-tap" + (isNew ? " is-new" : "") },
+        h("a", { class: "req-link", href: "#update", onclick: function () { ui.updating = it; ui.updated = null; },
+            "aria-label": it.text + ". Asked " + fmt(it.added) + (isNew ? ", new" : "") + ". Tap if this prayer has been answered." },
+          h("span", { class: "req-body", "aria-hidden": "true" },
+            h("span", { class: "req-text", text: it.text }),
+            h("span", { class: "meta" }, meta)),
+          h("span", { class: "chev", "aria-hidden": "true", text: "\u203A" })));
+    }
+    return h("li", { class: "req" + (answered ? " answered" : "") + (isNew ? " is-new" : "") },
+      showName ? h("p", { class: "req-name", text: it.name }) : null,
+      h("p", { class: "req-text", text: it.text }),
+      it.note ? h("p", { class: "req-note", text: it.note }) : null,
+      h("div", { class: "meta" }, meta));
+  }
+
+  function personPage(p) {
+    var from = ui.lastList || "everyone";
+    var list = from === "today" && p.isNew ? today : everyone;
+    var first = firstName(p.name);
+    return [
+      h("div", { class: "topbar" },
+        h("a", { class: "btn", href: "#" + (list === today ? "today" : "everyone") }, "‹ Back to " + (list === today ? "New Requests" : "Members"))),
+      h("div", { class: "who" + (p.isNew ? " is-new" : "") },
+        h("span", { class: "avatar", "aria-hidden": "true", text: initials(p.name) }),
+        h("div", null, h("h1", { id: "page-title", tabindex: "-1", text: p.name }),
+          h("p", { text: p.open.length ? plural(p.open.length, "prayer request", "prayer requests") : "No prayer requests yet" }))),
+      h("section", { class: "top", "aria-labelledby": "pray-title" },
+        h("h2", { class: "section-title", id: "pray-title", text: "Please pray for" }),
+        p.open.length ? h("ul", { class: "cards" }, p.open.map(function (it) { return reqCard(it); }))
+          : h("p", { class: "empty-note", text: "No prayer requests right now." })),
+      // One quiet card with both things a person can do here.
+      h("nav", { class: "actions-card", "aria-labelledby": "act-title" },
+        h("p", { class: "actions-title", id: "act-title", text: "Update " + first + "’s prayer list" }),
+        p.open.length ? h("a", { class: "action-row", href: "#update", title: "Choose a prayer that was answered or is no longer needed",
+            onclick: function () { ui.updatingPerson = p; ui.updatingSet = null; ui.updated = null; ui.updateChoice = null; } },
+          h("span", { class: "action-icon star", html: STAR }),
+          h("span", { class: "action-label", text: "Mark a prayer as answered" }),
+          h("span", { class: "chev", "aria-hidden": "true", text: "›" })) : null,
+        h("a", { class: "action-row", href: "#add", title: "Add a new prayer request for " + p.name,
+            onclick: function () { ui.addFor = p.name; ui.added = null; } },
+          h("span", { class: "action-icon plus", html: PLUS }),
+          h("span", { class: "action-label", text: "Add a new prayer for " + first }),
+          h("span", { class: "chev", "aria-hidden": "true", text: "›" }))),
+      p.answered.length || p.praise.length ? h("section", { class: "top", "aria-labelledby": "ans-title" },
+        h("h2", { class: "section-title", id: "ans-title", text: "Answered prayers and praise" }),
+        h("ul", { class: "cards" }, p.answered.concat(p.praise).map(function (it) { return reqCard(it); }))) : null,
+      simpleFooter()];
+  }
+  function simpleFooter() { return null; }
+
+  // ---------- adding a request ----------
+  var CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  var HEART = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.4-9.2-9A5.2 5.2 0 0 1 12 6.6 5.2 5.2 0 0 1 21.2 12C19 16.6 12 21 12 21z"/></svg>';
+  function composer() {
+    return h("a", { class: "composer", href: "#add", onclick: function () { ui.addFor = null; ui.added = null; } },
+      h("span", { class: "plus", html: PLUS }),
+      h("span", { class: "composer-text" }, h("span", { text: "Forgot to share at the study?" }), h("strong", { text: "Add a prayer request" })),
+      h("span", { class: "chev", "aria-hidden": "true", text: "›" }));
+  }
+  function remembered() { try { return localStorage.getItem("g3-me") || ""; } catch (e) { return ""; } }
+
+  // Saves a new request or praise report to the group's list.
+  function saveRequest(item) {
+    return api("add", { name: item.name, text: item.text, kind: item.kind }).then(function (saved) {
+      item.id = saved.id; item.added = saved.added; item.source = "web";
+      return item;
+    }, saveFailed);
+  }
+
+  // ---------- form helpers: every field says what it is, and mistakes are easy to recover from ----------
+  function need(required) { return h("span", { class: "need" + (required ? "" : " opt"), text: required ? "(required)" : "(optional)" }); }
+  function fieldLabel(forId, text, required) { return h("label", { for: forId }, text, " ", need(required)); }
+  function fieldLegend(text, required) { return h("legend", null, text, " ", need(required)); }
+  function helpText(id, text) { return h("p", { class: "help", id: id, text: text }); }
+  function draft(key, val) {
+    try {
+      if (val === undefined) return localStorage.getItem("g3-draft-" + key) || "";
+      if (val) localStorage.setItem("g3-draft-" + key, val); else localStorage.removeItem("g3-draft-" + key);
+    } catch (e) { return ""; }
+  }
+  // A text box that saves as you type and shows how much room is left.
+  function textBox(id, key, placeholder, helpId) {
+    var MAX = 300;
+    var ta = h("textarea", { id: id, class: "input", rows: "4", maxlength: String(MAX), placeholder: placeholder,
+      "aria-describedby": helpId + " " + id + "-count " + id + "-err" });
+    if (key !== "update") ta.setAttribute("aria-required", "true");
+    var saved = draft(key);
+    ta.value = saved;
+    var count = h("p", { class: "count", id: id + "-count" });
+    function update() { var left = MAX - ta.value.length; count.textContent = left <= 60 ? left + " letters left." : "You can write up to " + MAX + " letters."; }
+    ta.addEventListener("input", function () { draft(key, ta.value); update(); });
+    update();
+    return {
+      el: ta, count: count,
+      restored: saved ? h("p", { class: "restored", text: "We kept what you were writing last time." }) : null,
+      clear: function () { draft(key, ""); },
+    };
+  }
+  // The name list, with a way out for anyone who is not on it.
+  function nameField(id, preset) {
+    var names = (DATA.members || []).slice().sort(function (a, b) { return a.localeCompare(b); });
+    var sel = h("select", { id: id, class: "input", "aria-required": "true", "aria-describedby": id + "-help " + id + "-err" },
+      h("option", { value: "", text: "Choose your name" }),
+      names.map(function (n) { return h("option", { value: n, text: n }); }),
+      h("option", { value: "__other", text: "My name is not on this list" }));
+    var other = h("input", { id: id + "-other", class: "input", type: "text", autocomplete: "name", maxlength: "60", "aria-required": "true", "aria-describedby": id + "-other-err" });
+    var otherErr = h("p", { class: "error", id: id + "-other-err", hidden: true, text: "Please type your name." });
+    var otherWrap = h("div", { class: "field sub-field", hidden: true }, fieldLabel(id + "-other", "Please type your name", true), other, otherErr);
+    var err = h("p", { class: "error", id: id + "-err", hidden: true, text: "Please choose your name from the list." });
+    var start = preset || remembered();
+    if (start && names.indexOf(start) < 0) { sel.value = "__other"; other.value = start; otherWrap.hidden = false; }
+    else sel.value = start || "";
+    sel.addEventListener("change", function () {
+      otherWrap.hidden = sel.value !== "__other";
+      err.hidden = true; sel.removeAttribute("aria-invalid");
+      if (!otherWrap.hidden) other.focus();
+    });
+    return {
+      el: [sel, err, otherWrap],
+      value: function () { return sel.value === "__other" ? other.value.trim().replace(/\s+/g, " ") : sel.value; },
+      onChange: function (fn) { sel.addEventListener("change", fn); other.addEventListener("change", fn); },
+      check: function () {
+        err.hidden = true; otherErr.hidden = true; sel.removeAttribute("aria-invalid"); other.removeAttribute("aria-invalid");
+        if (!sel.value) { err.hidden = false; sel.setAttribute("aria-invalid", "true"); return { id: id, msg: "Choose your name" }; }
+        if (sel.value === "__other" && !other.value.trim()) { otherErr.hidden = false; other.setAttribute("aria-invalid", "true"); return { id: id + "-other", msg: "Type your name" }; }
+        return null;
+      },
+    };
+  }
+  // A box at the top of the form that lists what still needs fixing, each linked to its field.
+  function errorSummary(form, errors) {
+    var old = form.querySelector(".error-summary");
+    if (old) old.remove();
+    if (!errors.length) return;
+    var box = h("div", { class: "error-summary", role: "alert", tabindex: "-1" },
+      h("p", { class: "error-title", text: errors.length === 1 ? "Please fix one thing before sharing:" : "Please fix " + errors.length + " things before sharing:" }),
+      h("ul", null, errors.map(function (er) {
+        return h("li", null, h("a", { href: "#" + er.id, title: "Go to this question",
+          onclick: function (e) { e.preventDefault(); var f = document.getElementById(er.id); if (f) { f.focus(); f.scrollIntoView({ block: "center" }); } } }, er.msg));
+      })));
+    form.prepend(box);
+    box.focus();
+    box.scrollIntoView({ block: "start" });
+  }
+  function rememberName(name) { try { localStorage.setItem("g3-me", name); } catch (e) {} }
+  function removeAdded(item) {
+    DATA.items = DATA.items.filter(function (x) { return x !== item; });
+    api("update", { id: item.id, change: { removed: true } }).catch(saveFailed);
+    shape(); updateBadge();
+  }
+
+  function addPage() {
+    if (ui.added) return thanksView(ui.added);
+    var who = nameField("f-name", ui.addFor);
+    var kind = "request";
+    function labelFor(k) { return k === "praise" ? "What would you like to thank God for?" : "What would you like us to pray for?"; }
+    function exampleFor(k) { return k === "praise" ? "For example: My test results came back clear." : "For example: Healing for my knee after surgery on Tuesday."; }
+    var tb = textBox("f-text", "add", exampleFor(kind), "f-text-help");
+    var labelWords = h("span", { text: labelFor(kind) });
+    var textErr = h("p", { class: "error", id: "f-text-err", hidden: true, text: "Please write a few words about your request." });
+    function choice(value, title, sub, icon) {
+      var input = h("input", { type: "radio", name: "kind", value: value, id: "k-" + value });
+      input.checked = kind === value;
+      input.addEventListener("change", function () { ui.addKind = value; labelWords.textContent = labelFor(value); tb.el.placeholder = exampleFor(value); });
+      return h("label", { class: "choice", for: "k-" + value, title: title }, input,
+        h("span", { class: "choice-icon", html: icon }),
+        h("span", { class: "choice-text" }, h("strong", { text: title }), h("span", { text: sub })));
+    }
+    var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Share this with everyone in Group 3" }, "Share with the group");
+    var form = h("form", { class: "form", novalidate: true },
+      h("div", { class: "field" }, fieldLabel("f-name", "Whose prayer request is this?", true),
+        helpText("f-name-help", "Choose the name it should appear under."), who.el),
+      h("div", { class: "field" }, h("label", { for: "f-text" }, labelWords, " ", need(true)),
+        helpText("f-text-help", "Keep it short, or write \u201CUnspoken request\u201D to keep it private."),
+        tb.restored, tb.el, tb.count, textErr),
+      submit,
+      h("a", { class: "btn wide-btn", href: "#" + (ui.lastList || "today"), title: "Leave without sharing. What you wrote is kept for next time." }, "Cancel"));
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var errors = [], e1 = who.check(), words = tb.el.value.trim();
+      if (e1) errors.push(e1);
+      textErr.hidden = !!words; tb.el.setAttribute("aria-invalid", String(!words));
+      if (!words) errors.push({ id: "f-text", msg: "Write a few words about your request" });
+      if (errors.length) { errorSummary(form, errors); return; }
+      submit.disabled = true; submit.textContent = "Sharing…";
+      var name = who.value();
+      var item = { id: "w" + Date.now(), name: name, kind: "request", text: words.charAt(0).toUpperCase() + words.slice(1),
+        added: todayISO(), answered: null, note: "", source: "web" };
+      rememberName(name);
+      saveRequest(item).then(function () {
+        DATA.items.push(item); shape(); updateBadge(); tb.clear();
+        ui.added = item; ui.addKind = null; ui.addFor = null;
+        route("focus");
+      }, function () {
+        submit.disabled = false; submit.textContent = "Share with the group";
+        errorSummary(form, [{ id: "f-text", msg: "We could not send it just now. Your words are saved. Please try again in a minute." }]);
+      });
+    });
+    return [
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#" + (ui.lastList || "today") }, "\u2039 Back to " + ({ today: "New Requests", everyone: "Members", praise: "Praise Reports" }[ui.lastList] || "New Requests"))),
+      h("div", null,
+        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Add a Prayer Request" }),
+        h("p", { class: "hint", text: "Share something you\u2019d like the group to pray about." })),
+      form];
+  }
+  function thanksView(item) {
+    var p = people[item.name];
+    var isPraise = item.kind === "praise";
+    return [
+      h("div", { class: "thanks", role: "status" },
+        h("span", { class: "thanks-icon", html: CHECK }),
+        h("h1", { id: "page-title", tabindex: "-1", text: "Thank you, " + firstName(item.name) }),
+        h("p", { text: isPraise ? "Your praise report was shared with the group." : "Your prayer request was added under your name. The group will see it on the list." }),
+        h("a", { class: "btn primary wide-btn", href: isPraise ? "#praise" : "#" + p.slug, onclick: function () { ui.added = null; } },
+          isPraise ? "See it on the Praise page" : "See it under your name"),
+        h("a", { class: "btn wide-btn", href: "#today", onclick: function () { ui.added = null; } }, "Back to New Requests"),
+        h("button", { type: "button", class: "linklike", title: "Take it back and return to the form with your words", onclick: function () {
+          removeAdded(item);
+          draft(isPraise && item.source === "web" && ui.lastList === "praise" ? "praise" : "add", item.text);
+          ui.added = null; ui.addFor = item.name; ui.addKind = item.kind;
+          var target = isPraise && ui.lastList === "praise" ? "praise-add" : "add";
+          if (location.hash === "#" + target) route("focus"); else location.hash = target;
+        } }, "Undo, I want to change it"))];
+  }
+
+  // ---------- marking a prayer answered, or taking it off the list ----------
+  // Marks a prayer answered (with an optional note), takes it off the list, or undoes either.
+  function saveUpdate(item, change) {
+    return api("update", { id: item.id, change: change }).catch(saveFailed);
+  }
+  function saveFailed(err) {
+    notify("We could not save that just now. Please check your internet connection and try again.");
+    route(true);
+    throw err;
+  }
+  function reload() {
+    return api("data").then(function (d) {
+      DATA = d; prepare(); shape(); updateBadge();
+      if (!/^#(add|update|praise-add|paste)$/.test(location.hash)) route(true);
+    });
+  }
+  var loadedAt = Date.now();
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && Date.now() - loadedAt > 60000) { loadedAt = Date.now(); reload().catch(function () {}); }
+  });
+  function applyChange(item, change) {
+    item.answered = change && change.answered || null;
+    item.note = change && change.note || item.originalNote || "";
+    item.removed = !!(change && change.removed);
+  }
+
+  function updatePage() {
+    if (ui.updated) return updatedView(ui.updated);
+    var p = ui.updatingPerson && people[ui.updatingPerson.name];
+    if (!p || !p.open.length) return todayPage();
+    // Several prayers can be marked at once.
+    var chosen = (ui.updatingSet || []).filter(function (it) { return p.open.indexOf(it) >= 0; });
+    if (!chosen.length && p.open.length === 1) chosen = [p.open[0]];
+    ui.updatingSet = chosen;
+    var choice = ui.updateChoice || "answered";
+    var who = nameField("u-who", remembered() || p.name);
+    var tb = textBox("u-note", "update", "For example: The surgery went well and she is home.", "u-note-help");
+    var noteField = h("div", { class: "field", hidden: choice !== "answered" },
+      fieldLabel("u-note", "Would you like to share what happened?", false),
+      helpText("u-note-help", "This will be shown with the prayer on the Praise page."), tb.restored, tb.el, tb.count,
+      h("p", { class: "error", id: "u-note-err", hidden: true }));
+    var submit = h("button", { type: "submit", class: "btn primary wide-btn raised" });
+    function submitText() {
+      var n = ui.updatingSet.length;
+      if (ui.updateChoice === "removed") {
+        submit.textContent = n > 1 ? "Take " + n + " off the list" : "Take off the list";
+        submit.title = "Take the chosen prayer requests off the prayer list";
+      } else {
+        submit.textContent = n > 1 ? "Move " + n + " prayers to Praise" : "Move to Praise";
+        submit.title = "Move the chosen prayers to Praise Reports";
+      }
+    }
+    var pickErr = h("p", { class: "error", id: "u-pick-err", hidden: true, text: "Please choose at least one prayer request." });
+    var pickList = h("div", { class: "choices" }, p.open.map(function (it, i) {
+      var input = h("input", { type: "checkbox", name: "which", id: "w-" + i, "aria-describedby": "u-pick-help u-pick-err" });
+      input.checked = chosen.indexOf(it) >= 0;
+      input.addEventListener("change", function () {
+        var at = ui.updatingSet.indexOf(it);
+        if (input.checked && at < 0) ui.updatingSet.push(it);
+        if (!input.checked && at >= 0) ui.updatingSet.splice(at, 1);
+        pickErr.hidden = true; submitText();
+        if (ui.updatingSet.length) { var box = document.querySelector(".error-summary"); if (box) box.remove(); }
+      });
+      return h("label", { class: "choice check", for: "w-" + i, title: "Choose this prayer request" }, input,
+        h("span", { class: "choice-text" }, h("strong", { text: it.text }), h("span", { text: "Asked " + fmt(it.added) })));
+    }));
+    function option(value, title, sub) {
+      var input = h("input", { type: "radio", name: "what", value: value, id: "u-" + value });
+      input.checked = choice === value;
+      input.addEventListener("change", function () { ui.updateChoice = value; noteField.hidden = value !== "answered"; submitText(); });
+      return h("label", { class: "choice", for: "u-" + value, title: title }, input,
+        h("span", { class: "choice-text" }, h("strong", { text: title }), h("span", { text: sub })));
+    }
+    var many = p.open.length > 1;
+    var form = h("form", { class: "form", novalidate: true },
+      h("fieldset", { class: "field", id: "u-pick" },
+        fieldLegend(many ? "1. Which prayer requests?" : "This prayer request", true),
+        many ? helpText("u-pick-help", "Choose all that apply. You can tick more than one.") : null,
+        pickList, pickErr),
+      h("fieldset", { class: "field" }, fieldLegend((many ? "2. " : "") + "What happened?", true),
+        h("div", { class: "choices", role: "radiogroup", "aria-required": "true", "aria-label": "What happened?" },
+          option("answered", "God answered " + (many ? "these prayers" : "this prayer"), "They move to Praise Reports so everyone can celebrate."),
+          option("removed", "No longer needed", "They are quietly taken off the prayer list."))),
+      noteField,
+      h("div", { class: "field" }, fieldLabel("u-who", "Who is updating this?", true),
+        helpText("u-who-help", "So the group knows who shared the news."), who.el),
+      submit,
+      h("a", { class: "btn wide-btn", href: "#" + p.slug, title: "Leave without changing anything" }, "Cancel, keep praying"));
+    submitText();
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var errors = [];
+      pickErr.hidden = ui.updatingSet.length > 0;
+      if (!ui.updatingSet.length) errors.push({ id: "w-0", msg: "Choose at least one prayer request" });
+      var e2 = who.check(); if (e2) errors.push(e2);
+      if (errors.length) { errorSummary(form, errors); return; }
+      var items = ui.updatingSet.slice(), name = who.value();
+      submit.disabled = true; submit.textContent = "Saving…";
+      rememberName(name);
+      var befores = items.map(function (it) { return { answered: it.answered, note: it.note, removed: !!it.removed }; });
+      var change = ui.updateChoice === "removed" ? { removed: true, by: name } : { answered: todayISO(), note: tb.el.value.trim(), by: name };
+      Promise.all(items.map(function (it) { return saveUpdate(it, change); })).then(function () {
+        items.forEach(function (it) { applyChange(it, change); });
+        shape(); updateBadge(); tb.clear();
+        ui.updated = { items: items, befores: befores, kind: change.removed ? "removed" : "answered" };
+        ui.updateChoice = null; ui.updatingSet = null;
+        route("focus");
+      });
+    });
+    return [
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#" + p.slug }, "‹ Back to " + firstName(p.name))),
+      h("div", null,
+        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "A prayer was answered" }),
+        h("p", { class: "hint", text: "Update " + firstName(p.name) + "’s prayer list. You can undo this afterwards." })),
+      form];
+  }
+  function updatedView(u) {
+    var items = u.items || [u.item], befores = u.befores || [u.before];
+    var p = people[items[0].name], n = items.length;
+    var answered = u.kind === "answered";
+    return [
+      h("div", { class: "thanks", role: "status" },
+        h("span", { class: "thanks-icon", html: answered ? STAR : CHECK }),
+        h("h1", { id: "page-title", tabindex: "-1", text: answered ? "Praise God!" : "Taken off the list" }),
+        h("p", { text: answered
+          ? (n === 1 ? "This prayer is now in Praise Reports for everyone to see:" : n + " prayers are now in Praise Reports for everyone to see:")
+          : (n === 1 ? "This request is no longer on the prayer list:" : n + " requests are no longer on the prayer list:") }),
+        h("ul", { class: "moved-list" }, items.map(function (it) { return h("li", { text: it.text }); })),
+        answered ? h("a", { class: "btn primary wide-btn", href: "#praise", onclick: function () { ui.updated = null; } }, "See Praise Reports") : null,
+        h("a", { class: "btn wide-btn" + (answered ? "" : " primary"), href: p ? "#" + p.slug : "#everyone", onclick: function () { ui.updated = null; } },
+          p ? "Back to " + firstName(items[0].name) + "’s page" : "Back to Members"),
+        h("button", { type: "button", class: "linklike", title: n === 1 ? "Put it back the way it was" : "Put all of them back the way they were", onclick: function () {
+          var back = items[0];
+          Promise.all(items.map(function (it, i) {
+            var b = befores[i].answered || befores[i].removed ? befores[i] : null;
+            applyChange(it, b);
+            return saveUpdate(it, b);
+          })).then(function () {
+            shape(); updateBadge(); ui.updated = null;
+            location.hash = people[back.name] ? people[back.name].slug : "everyone";
+          });
+        } }, "Undo, I tapped this by mistake"))];
+  }
+
+  // ---------- praise page and "share a praise report" ----------
+  function praiseRow(it) {
+    var answered = !!it.answered, main = answered && it.note ? it.note : it.text;
+    return h("li", { class: "praise-row" },
+      h("span", { class: "avatar praise-av", "aria-hidden": "true", text: initials(it.name) }),
+      h("div", { class: "praise-body" },
+        h("p", { class: "praise-head" }, h("strong", { text: it.name }), h("span", { class: "praise-date", text: fmt(it.answered || it.added) })),
+        h("p", { class: "praise-kind" }, h("span", { class: "praise-icon", html: STAR }), answered ? "Prayer answered" : "Praise report"),
+        h("p", { class: "praise-text", text: main }),
+        answered && it.note ? h("p", { class: "praise-was" }, h("span", { text: "Prayer request: " }), it.text) : null));
+  }
+  // Praise stays short: recent good news first, everything older filed by month (like Photos or an order history).
+  function praiseDate(it) { return it.answered || it.added; }
+  function monthKey(iso) { return iso.slice(0, 7); }
+  function monthLabel(ym) { var p = ym.split("-").map(Number); return new Date(p[0], p[1] - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" }); }
+  function praiseMonths() {
+    var map = {}, order = [];
+    praiseItems.forEach(function (it) { var k = monthKey(praiseDate(it)); if (!map[k]) { map[k] = []; order.push(k); } map[k].push(it); });
+    return order.sort().reverse().map(function (k) { return { key: k, items: map[k] }; });
+  }
+  function praisePage() {
+    var RECENT_MAX = 10;
+    var newest = praiseItems.length ? praiseDate(praiseItems[0]) : "";
+    var p0 = newest.split("-").map(Number);
+    var cutoff = newest ? new Date(Date.UTC(p0[0], p0[1] - 1, p0[2] - 14)).toISOString().slice(0, 10) : "";
+    var recentAll = praiseItems.filter(function (it) { return praiseDate(it) > cutoff; });
+    var recent = recentAll.slice(0, RECENT_MAX);
+    var months = praiseMonths();
+    return [
+      header("Praise Reports", plural(praiseItems.length, "answer", "answers") + " to prayer", "praise"),
+      praiseItems.length ? [
+        h("section", { class: "top", "aria-labelledby": "pr-recent" },
+          h("div", null,
+            h("h2", { class: "section-title", id: "pr-recent", text: "Recent" }),
+            h("p", { class: "hint", text: "Good news from the last two weeks, newest first." })),
+          h("ul", { class: "praise-list" }, recent.map(praiseRow)),
+          recentAll.length > RECENT_MAX ? h("a", { class: "btn wide-btn", href: "#praise-" + monthKey(newest) }, "See all from " + monthLabel(monthKey(newest)) + " ›") : null),
+        h("section", { class: "top", "aria-labelledby": "pr-months" },
+          h("div", null,
+            h("h2", { class: "section-title", id: "pr-months", text: "By month" }),
+            h("p", { class: "hint lead", text: "Tap a month to see all of its praise reports." })),
+          h("ul", { class: "rows months" }, months.map(function (m) {
+            return h("li", null, h("a", { class: "row-link", href: "#praise-" + m.key, id: "row-praise-" + m.key,
+                "aria-label": monthLabel(m.key) + ", " + plural(m.items.length, "praise report", "praise reports") },
+              h("span", { class: "avatar month-av", "aria-hidden": "true", html: STAR }),
+              h("span", { class: "row-main", "aria-hidden": "true" },
+                h("span", { class: "row-name", text: monthLabel(m.key) }),
+                h("span", { class: "row-preview", text: plural(m.items.length, "praise report", "praise reports") })),
+              h("span", { class: "row-go", "aria-hidden": "true" }, "See", h("span", { class: "chev", text: "›" }))));
+          })))]
+        : h("div", { class: "empty" }, h("strong", { text: "No praise reports yet." }), h("p", { text: "Answered prayers will appear here." })),
+      footer()];
+  }
+  function praiseMonthPage(ym) {
+    var items = praiseItems.filter(function (it) { return monthKey(praiseDate(it)) === ym; });
+    return [
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#praise" }, "‹ Back to Praise Reports")),
+      h("div", null,
+        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: monthLabel(ym) }),
+        h("p", { class: "hint", text: plural(items.length, "praise report", "praise reports") + ", newest first" })),
+      items.length ? h("ul", { class: "praise-list" }, items.map(praiseRow))
+        : h("div", { class: "empty" }, h("strong", { text: "No praise reports this month." }))];
+  }
+  function praiseButton() {
+    return h("a", { class: "add-btn", href: "#praise-add", onclick: function () { ui.added = null; ui.updated = null; ui.praiseFor = null; ui.praiseText = ""; } },
+      h("span", { class: "add-icon", "aria-hidden": "true", text: "+" }), h("span", { text: "Share praise" }));
+  }
+
+  function praiseAddPage() {
+    if (ui.added) return thanksView(ui.added);
+    if (ui.updated) return updatedView(ui.updated);
+    var who = nameField("pr-who", ui.praiseWho);
+    var pickErr = h("p", { class: "error", id: "pr-pick-err", hidden: true, text: "Please choose one of the options." });
+    var textErr = h("p", { class: "error", id: "pr-text-err", hidden: true, text: "Please write a few words about what happened." });
+    var tb = textBox("pr-text", "praise", "For example: My test results came back clear!", "pr-text-help");
+    var reqWrap = h("div");
+    var firstPick = null;
+    function openFor() { var p = people[who.value()]; return p ? p.open : []; }
+    function drawReqs() {
+      reqWrap.replaceChildren(); firstPick = null; pickErr.hidden = true;
+      var open = openFor();
+      if (!who.value() || !open.length) return;
+      function radio(id, value, title, sub) {
+        var input = h("input", { type: "radio", name: "about", id: id, "aria-describedby": "pr-pick-err" });
+        input.checked = ui.praiseFor === value;
+        input.addEventListener("change", function () { ui.praiseFor = value; pickErr.hidden = true; });
+        if (!firstPick) firstPick = input;
+        return h("label", { class: "choice", for: id, title: title }, input, h("span", { class: "choice-text" }, h("strong", { text: title }), h("span", { text: sub })));
+      }
+      reqWrap.append(h("fieldset", { class: "field" },
+        fieldLegend("Is this about one of " + firstName(who.value()) + "’s prayer requests?", true),
+        helpText("pr-pick-help", "If it is, that request moves from the prayer list to Praise."),
+        h("div", { class: "choices" },
+          open.map(function (it, i) { return radio("pf-" + i, it, it.text, "Asked " + fmt(it.added)); }),
+          radio("pf-new", "new", "Something else", "Good news that is not on the prayer list")),
+        pickErr));
+    }
+    who.onChange(function () { ui.praiseWho = who.value(); ui.praiseFor = null; drawReqs(); });
+    drawReqs();
+    var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Share this good news with everyone in Group 3" }, "Share praise report");
+    var form = h("form", { class: "form", novalidate: true },
+      h("div", { class: "field" }, fieldLabel("pr-who", "Who is this from?", true),
+        helpText("pr-who-help", "Choose the name it should appear under."), who.el),
+      reqWrap,
+      h("div", { class: "field" }, fieldLabel("pr-text", "Share your praise report", true),
+        helpText("pr-text-help", "Tell the group what God has done."),
+        tb.restored, tb.el, tb.count, textErr),
+      submit,
+      h("a", { class: "btn wide-btn", href: "#praise", title: "Leave without sharing. What you wrote is kept for next time." }, "Cancel"));
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var errors = [], e1 = who.check(), words = tb.el.value.trim(), open = openFor();
+      if (e1) errors.push(e1);
+      var needPick = !e1 && open.length > 0 && !ui.praiseFor;
+      pickErr.hidden = !needPick;
+      if (needPick) errors.push({ id: "pf-0", msg: "Choose which prayer this is about, or “Something else”" });
+      textErr.hidden = !!words; tb.el.setAttribute("aria-invalid", String(!words));
+      if (!words) errors.push({ id: "pr-text", msg: "Write a few words about what happened" });
+      if (errors.length) { errorSummary(form, errors); return; }
+      var name = who.value();
+      submit.disabled = true; submit.textContent = "Sharing…";
+      rememberName(name);
+      var words2 = words.charAt(0).toUpperCase() + words.slice(1);
+      var done = function () { tb.clear(); ui.praiseFor = null; route("focus"); };
+      if (ui.praiseFor && ui.praiseFor !== "new") {
+        var item = ui.praiseFor, before = { answered: item.answered, note: item.note, removed: !!item.removed };
+        var change = { answered: todayISO(), note: words2, by: name };
+        saveUpdate(item, change).then(function () { applyChange(item, change); shape(); updateBadge(); ui.updated = { item: item, before: before, kind: "answered" }; done(); });
+      } else {
+        var praise = { id: "w" + Date.now(), name: name, kind: "praise", text: words2, added: todayISO(), answered: null, note: "", source: "web" };
+        saveRequest(praise).then(function () { DATA.items.push(praise); shape(); ui.added = praise; done(); });
+      }
+    });
+    return [
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#praise" }, "\u2039 Back to Praise")),
+      h("div", null,
+        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Share a Praise Report" }),
+        h("p", { class: "hint", text: "Has God answered a prayer? Let the group celebrate with you." })),
+      form];
+  }
+
+  // ---------- tooltips: every button and link says what it does ----------
+  function tip(el, text) { if (el && !el.getAttribute("title")) el.setAttribute("title", text); }
+  function addTips() {
+    tip(document.getElementById("nav-today"), "See the newest prayer requests");
+    tip(document.getElementById("nav-everyone"), "See all members, A to Z");
+    tip(document.getElementById("nav-praise"), "See answered prayers and praise reports");
+    document.querySelectorAll(".row-link, .tile").forEach(function (a) {
+      var n = a.querySelector(".row-name, .tile-name"); if (n) tip(a, "Open " + n.textContent + "’s prayer requests");
+    });
+    document.querySelectorAll(".add-btn").forEach(function (a) {
+      var t = a.textContent;
+      tip(a, a.getAttribute("href") === "#praise-add" ? "Share good news or an answered prayer with the group"
+        : t.indexOf(" for ") > 0 ? "Add a new prayer request for " + t.split(" for ")[1] : "Add a new prayer request");
+    });
+    document.querySelectorAll(".topbar > .btn:first-child").forEach(function (a) { tip(a, "Go back to " + a.textContent.replace("‹", "").trim()); });
+    document.querySelectorAll(".size-opt").forEach(function (b) { tip(b, "Show the words in " + b.textContent.toLowerCase() + " size"); });
+    document.querySelectorAll(".pager .next").forEach(function (a) { var s = a.querySelector("small"); tip(a, "Go to the next person" + (s ? ": " + s.textContent : "")); });
+    document.querySelectorAll(".pager a[aria-label]").forEach(function (a) { tip(a, "Go to the " + a.getAttribute("aria-label").toLowerCase()); });
+    document.querySelectorAll(".answer-box a").forEach(function (a) { tip(a, "Choose a prayer that was answered or is no longer needed"); });
+    document.querySelectorAll('.btn[href="#everyone"]').forEach(function (a) { tip(a, "See all members, A to Z"); });
+    document.querySelectorAll(".skip").forEach(function (a) { tip(a, "Jump past the menu to the page itself"); });
+    document.querySelectorAll("a, button, select, input, textarea").forEach(function (el) {
+      if (el.getAttribute("title")) return;
+      var label = el.id && document.querySelector('label[for="' + el.id + '"]');
+      tip(el, (label ? label.textContent.replace(/\s*\((required|optional)\)\s*$/i, "") : (el.getAttribute("aria-label") || el.textContent)).trim().replace(/\s+/g, " "));
+    });
+  }
+
+  // ---------- manager area: only with the manager link ----------
+  function managePage() {
+    if (DATA.role !== "manager") return todayPage();
+    var all = (DATA.all || []).slice().sort(function (a, b) { return (b.answered || b.added).localeCompare(a.answered || a.added); });
+    var live = all.filter(function (it) { return !it.archived; });
+    var removed = all.filter(function (it) { return it.archived; });
+    var link = location.origin + "/" + encodeURIComponent(DATA.memberPath || "");
+    var newName = h("input", { id: "m-new", class: "input", type: "text", maxlength: "60", autocomplete: "off", "aria-describedby": "m-new-help m-new-err" });
+    var newErr = h("p", { class: "error", id: "m-new-err", hidden: true, text: "Please type a name." });
+    return [
+      header("Manage", "Only Lisa and Rebecca can see this page.", "none"),
+      h("section", { class: "top", "aria-labelledby": "m-link" },
+        h("div", null, h("h2", { class: "section-title", id: "m-link", text: "The group link" }),
+          h("p", { class: "hint", text: "Send this link to members. It opens the prayer list, with no password." })),
+        h("div", { class: "link-box" }, h("p", { class: "link-text", text: link }), copyButton(link))),
+      h("section", { class: "top", "aria-labelledby": "m-req" },
+        h("div", null, h("h2", { class: "section-title", id: "m-req", text: "Prayer requests" }),
+          h("p", { class: "hint lead", text: "Fix the words or the name, hide something private, or remove it." })),
+        live.length ? h("ul", { class: "manage-list" }, live.map(manageRow)) : h("p", { class: "empty-note", text: "No prayer requests yet." })),
+      removed.length ? h("section", { class: "top", "aria-labelledby": "m-removed" },
+        h("div", null, h("h2", { class: "section-title", id: "m-removed", text: "Removed (" + removed.length + ")" }),
+          h("p", { class: "hint", text: "These are off the list. Tap Restore to bring one back." })),
+        h("ul", { class: "manage-list" }, removed.map(manageRow))) : null,
+      h("section", { class: "top", "aria-labelledby": "m-members" },
+        h("div", null, h("h2", { class: "section-title", id: "m-members", text: "Members (" + (DATA.memberRows || []).length + ")" }),
+          h("p", { class: "hint", text: "Names are shown as first name and last initial." })),
+        h("form", { class: "member-add", novalidate: true, onsubmit: function (e) {
+            e.preventDefault();
+            var n = newName.value.trim().replace(/\s+/g, " ");
+            newErr.hidden = !!n;
+            if (!n) { newName.setAttribute("aria-invalid", "true"); newName.focus(); return; }
+            manage({ action: "member-add", name: n }, n + " was added.");
+          } },
+          h("div", { class: "field" }, fieldLabel("m-new", "Add a member", true), helpText("m-new-help", "First name and last initial, like: Grace O."), newName, newErr),
+          h("button", { type: "submit", class: "btn primary" }, "Add member")),
+        h("ul", { class: "manage-list members" }, (DATA.memberRows || []).map(memberRow)))];
+  }
+  function manageRow(it) {
+    if (ui.mEdit === it.id) {
+      var names = (DATA.members || []).slice();
+      if (names.indexOf(it.name) < 0) names.unshift(it.name);
+      var sel = h("select", { id: "me-name", class: "input" }, names.map(function (n) { return h("option", { value: n, text: n }); }));
+      sel.value = it.name;
+      var ta = h("textarea", { id: "me-text", class: "input", rows: "3", maxlength: "300" });
+      ta.value = it.text;
+      return h("li", { class: "manage-row editing" },
+        h("div", { class: "field" }, fieldLabel("me-name", "Name", true), sel),
+        h("div", { class: "field" }, fieldLabel("me-text", it.kind === "praise" ? "Praise report" : "Prayer request", true), ta),
+        h("div", { class: "manage-actions" },
+          h("button", { type: "button", class: "btn primary", onclick: function () {
+            if (!ta.value.trim()) { ta.setAttribute("aria-invalid", "true"); ta.focus(); return; }
+            manage({ action: "edit", id: it.id, name: sel.value, text: ta.value.trim() }, "Saved.");
+          } }, "Save"),
+          h("button", { type: "button", class: "btn", onclick: function () { ui.mEdit = null; route(true); } }, "Cancel")));
+    }
+    var chips = [h("span", { class: "tag", text: it.kind === "praise" ? "Praise" : it.answered ? "Answered" : "Praying" })];
+    if (it.hidden && !it.archived) chips.push(h("span", { class: "tag off", text: "Hidden" }));
+    return h("li", { class: "manage-row" + (it.hidden || it.archived ? " dim" : "") },
+      h("p", { class: "req-name", text: it.name }),
+      h("p", { class: "req-text", text: it.text }),
+      h("div", { class: "meta" }, chips, h("span", { text: (it.kind === "praise" ? "Shared " : "Asked ") + fmt(it.added) })),
+      h("div", { class: "manage-actions" }, it.archived
+        ? h("button", { type: "button", class: "btn", title: "Put it back on the list", onclick: function () { manage({ action: "restore", id: it.id }, "Restored."); } }, "Restore")
+        : [h("button", { type: "button", class: "btn", title: "Fix the words or the name", onclick: function () { ui.mEdit = it.id; route(true); } }, "Edit"),
+           h("button", { type: "button", class: "btn", title: it.hidden ? "Show it on the list again" : "Keep it off the list for now",
+             onclick: function () { manage({ action: it.hidden ? "show" : "hide", id: it.id }, it.hidden ? "It shows on the list again." : "Hidden from the list."); } }, it.hidden ? "Show" : "Hide"),
+           h("button", { type: "button", class: "btn", title: "Take it off the list. You can restore it later.",
+             onclick: function () { manage({ action: "archive", id: it.id }, "Removed. You can restore it from the Removed list."); } }, "Remove")]));
+  }
+  function memberRow(m) {
+    var asking = ui.mRemove === m.id;
+    return h("li", { class: "member-row" },
+      h("span", { class: "avatar", "aria-hidden": "true", text: initials(m.name) }),
+      h("span", { class: "member-name", text: m.name }),
+      asking
+        ? h("span", { class: "manage-actions" }, h("span", { class: "confirm-q", text: "Remove " + m.name + "?" }),
+            h("button", { type: "button", class: "btn primary", onclick: function () { ui.mRemove = null; manage({ action: "member-remove", id: m.id }, m.name + " was removed."); } }, "Yes, remove"),
+            h("button", { type: "button", class: "btn", onclick: function () { ui.mRemove = null; route(true); } }, "No"))
+        : h("button", { type: "button", class: "btn", title: "Remove " + m.name + " from the member list", onclick: function () { ui.mRemove = m.id; route(true); } }, "Remove"));
+  }
+  function copyButton(textToCopy) {
+    return h("button", { type: "button", class: "btn", title: "Copy the link to send it", onclick: function () {
+      var done = function () { notify("Link copied. You can paste it into WhatsApp or an email.", "ok"); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(textToCopy).then(done, function () { selectLink(); });
+      else selectLink();
+    } }, "Copy link");
+  }
+  function selectLink() {
+    var el = document.querySelector(".link-text");
+    if (!el) return;
+    var r = document.createRange(); r.selectNodeContents(el);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    notify("The link is selected. Copy it from your phone's menu.", "ok");
+  }
+  function manage(body, doneMsg) {
+    return api("manage", body).then(function () { ui.mEdit = null; return reload(); }).then(function () { notify(doneMsg, "ok"); }, function () {});
+  }
+
+  // ---------- routing: #today, #everyone, #praise, or #p-name for one person ----------
+  function route(keepScroll) {
+    var key = location.hash.slice(1), y = window.scrollY, kids, page, nav;
+    if (bySlug[key]) { kids = personPage(bySlug[key]); page = key; nav = ui.lastList || "everyone"; ui.lastSlug = key; }
+    else {
+      var month = /^praise-(\d{4}-\d{2})$/.exec(key);
+      page = month ? key : LIST_NAMES[key] ? key : "today";
+      kids = month ? praiseMonthPage(month[1]) : page === "everyone" ? everyonePage() : page === "praise" ? praisePage() : page === "add" ? addPage() : page === "update" ? updatePage() : page === "praise-add" ? praiseAddPage() : page === "manage" ? managePage() : todayPage();
+      if (ui.lastList !== page && !keepScroll) ui.lastSlug = ui.lastList === undefined ? null : ui.lastSlug;
+      nav = page === "praise-add" || month ? "praise" : page === "add" || page === "update" ? (ui.lastList || "today") : page;
+    }
+    app.replaceChildren();
+    add(app, kids);
+    setNav(nav);
+    addTips();
+    document.title = (bySlug[page] ? bySlug[page].name : /^praise-\d{4}-\d{2}$/.test(page) ? monthLabel(page.slice(7)) + " praise" : LIST_NAMES[page]) + " \u00B7 Group 3 Prayer Requests";
+    if (keepScroll === true) { window.scrollTo(0, y); return; }
+    if (!bySlug[page] && ui.lastSlug && ui.lastList === page) {
+      var spot = document.getElementById("row-" + ui.lastSlug) || document.getElementById("tile-" + ui.lastSlug);
+      if (spot) { spot.scrollIntoView({ block: "center" }); spot.focus({ preventScroll: true }); return; }
+    }
+    if (!bySlug[page] && page !== "add" && page !== "update" && page !== "praise-add" && !/^praise-\d/.test(page)) ui.lastList = page;
+    window.scrollTo(0, 0);
+    if (keepScroll === "focus") { var t = document.getElementById("page-title"); if (t) t.focus({ preventScroll: true }); }
+  }
+  window.addEventListener("hashchange", function () { route("focus"); });
+  route();
+}
+// ---------- start-up: the link itself is the key ----------
+var GROUP_KEY = decodeURIComponent(location.pathname.split("/")[1] || "");
+function api(path, body) {
+  return fetch("/api/" + path, {
+    method: body ? "POST" : "GET",
+    headers: { "x-group-key": GROUP_KEY, "content-type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  }).then(function (res) {
+    if (res.status === 403) { location.replace("/private.html"); throw new Error("private"); }
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
+  });
+}
+var noticeEl, noticeTimer;
+function notify(message, kind) {
+  if (!noticeEl) {
+    noticeEl = document.createElement("div");
+    noticeEl.className = "notice-bar";
+    noticeEl.setAttribute("role", "status");
+    noticeEl.setAttribute("aria-live", "polite");
+    document.body.append(noticeEl);
+  }
+  noticeEl.className = "notice-bar" + (kind === "ok" ? " ok" : "");
+  noticeEl.textContent = message;
+  noticeEl.hidden = false;
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(function () { noticeEl.hidden = true; }, 7000);
+}
+(function boot() {
+  var app = document.getElementById("app");
+  app.innerHTML = '<p class="loading">Loading the prayer list…</p>';
+  api("data").then(startApp, function (err) {
+    if (String(err && err.message) === "private") return;
+    app.innerHTML = '<div class="empty"><strong>The prayer list could not load.</strong><p>Please check your internet connection.</p><button type="button" class="btn primary" id="retry">Try again</button></div>';
+    document.getElementById("retry").onclick = boot;
+  });
+})();
+
+</script>
+</body>
+</html>
