@@ -78,3 +78,16 @@ Members then need the new link (and to re-add the home-screen icon).
 - If a link leaks: change MEMBER_PATH or MANAGER_PATH in Netlify, redeploy, and share the new link.
 - If the Notion token leaks: open notion.so/profile/integrations, refresh the secret, and paste the new one into NOTION_TOKEN in Netlify.
 - Keep two-step sign-in turned on for GitHub, Netlify, Notion and Claude, and keep this repository private.
+
+## Safeguards against lost or vandalized requests
+
+- **Nothing is ever deleted.** "Remove" only sets Status to *Archived*; removing a member only unticks *Active*. Everything can be brought back from Manage → Removed, or in Notion.
+- **Activity log.** Every change from the page is written to the Notion database **Group 3 Activity Log**: what happened, which link was used (member or manager), and the wording *before* and *after*. Use it to see who changed what and to put anything back.
+- **Speed limit.** In any one hour, the member link can remove at most 10 requests and add 30; the manager link can remove, hide or edit at most 40 and add 100. Past that, changes pause for an hour and a "Blocked" line appears in the log.
+- **Nightly backup.** A GitHub Action (`.github/workflows/backup.yml`) saves a full copy of all four databases every night, kept for 90 days under the repo's Actions tab → *Nightly backup* → a run → *Artifacts*. It needs the repository secret `NOTION_TOKEN`.
+- **Notion's own history.** Each Notion page keeps its edit history, and Notion's trash keeps deleted pages for 30 days.
+
+### If someone vandalizes the list
+1. Change MEMBER_PATH (or MANAGER_PATH) in Netlify and redeploy. The old link stops working at once.
+2. Open the Activity Log in Notion, filter by the time it happened, and use Manage → Removed → Restore (or the *Before* column) to put things back.
+3. Share the new link with the group.

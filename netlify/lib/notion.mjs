@@ -116,3 +116,70 @@ export function toItem(row) {
     archived: status === "Archived",
   };
 }
+
+// ---------- Safeguards: an activity log, and a speed limit on changes ----------
+export const LOG_DB = process.env.LOG_DB || "cb5939603f1c4a4c8cbe0de5e80292d1";
+const LINK = { member: "Member link", manager: "Manager link" };
+
+// A short, readable copy of a request row, kept in the log so any change can be undone by hand.
+export function describe(row) {
+  if (!row) return "";
+  const p = row.properties;
+  const status = p.Status && p.Status.select ? p.Status.select.name : "";
+  const shown = p["Show on page"] && p["Show on page"].checkbox === false ? ", hidden" : "";
+  return `${plain(p.Person)}: ${plain(p.Request)} [${status}${shown}]`;
+}
+
+// Write one line to the Activity Log. Never stops the change itself if the log can't be reached.
+export async function logChange(who, action, { summary, person = "", before = "", after = "", id = "" } = {}) {
+  try {
+    await notion("/pages", "POST", {
+      parent: { database_id: LOG_DB },
+      properties: {
+        "What happened": { title: text(String(summary || action).slice(0, 200)) },
+        Action: { select: { name: action } },
+        "Link used": { select: { name: LINK[who] || "Member link" } },
+        Person: { rich_text: text(String(person).slice(0, 100)) },
+        Before: { rich_text: longText(String(before).slice(0, 1900)) },
+        After: { rich_text: longText(String(after).slice(0, 1900)) },
+        "Row ID": { rich_text: text(String(id)) },
+      },
+    });
+  } catch (err) {
+    console.error("Activity log not written:", err.message);
+  }
+}
+
+// How many of each kind of change one link may make in an hour. Normal use is far below this.
+const LIMITS = {
+  member: { remove: 10, add: 30 },
+  manager: { remove: 40, add: 100 },
+};
+const GROUPS = {
+  remove: ["Removed", "Hidden", "Edited", "Member removed"],
+  add: ["Added", "Member added", "Chat pasted", "Answered", "Undo"],
+};
+
+// Returns a "please slow down" response if this link has made too many changes in the last hour.
+export async function tooFast(who, group) {
+  const limit = (LIMITS[who] || LIMITS.member)[group];
+  const since = Date.now() - 60 * 60 * 1000;
+  let recent;
+  try {
+    recent = await queryAll(LOG_DB, {
+      filter: { timestamp: "created_time", created_time: { on_or_after: new Date(since).toISOString() } },
+    });
+  } catch (err) {
+    console.error("Speed limit not checked (activity log unreachable):", err.message);
+    return null;
+  }
+  const count = recent.filter((r) => {
+    const p = r.properties || {};
+    const action = p.Action && p.Action.select && p.Action.select.name;
+    const link = p["Link used"] && p["Link used"].select && p["Link used"].select.name;
+    return Date.parse(r.created_time) >= since && link === LINK[who] && GROUPS[group].includes(action);
+  }).length;
+  if (count < limit) return null;
+  await logChange(who, "Blocked", { summary: `Stopped: more than ${limit} changes in an hour` });
+  return json({ error: "That's a lot of changes at once, so the page has paused them for an hour. If this was you, please try again later or ask Rebecca." }, 429);
+}

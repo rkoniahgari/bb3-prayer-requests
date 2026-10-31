@@ -1,5 +1,5 @@
 // Manager-only actions: fix or hide requests, and keep the member list up to date.
-import { MEMBERS_DB, INBOX_DB, isId, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem, safe } from "../lib/notion.mjs";
+import { MEMBERS_DB, INBOX_DB, isId, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem, safe, logChange, tooFast, describe, plain } from "../lib/notion.mjs";
 
 const bare = (id) => String(id || "").replace(/-/g, "");
 
@@ -8,6 +8,10 @@ export default safe(async (request) => {
   if (role(request) !== "manager") return denied();
   const body = await readBody(request);
   const action = body.action;
+  const NAMES = { paste: "Chat pasted", "member-add": "Member added", "member-remove": "Member removed", edit: "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored" };
+  if (!NAMES[action]) return json({ error: "Unknown action." }, 400);
+  const slow = await tooFast("manager", ["member-remove", "edit", "hide", "archive"].includes(action) ? "remove" : "add");
+  if (slow) return slow;
 
   if (action === "paste") {
     const chat = String(body.chat || "").replace(/\r\n/g, "\n").trim().slice(0, 40000);
@@ -23,6 +27,7 @@ export default safe(async (request) => {
         "Pasted at": { date: { start: now } },
       },
     });
+    await logChange("manager", "Chat pasted", { summary: "Zoom chat pasted (see Group 3 Chat Inbox)", id: row.id });
     return json({ id: row.id, status: "Waiting", pastedAt: now });
   }
 
@@ -33,6 +38,7 @@ export default safe(async (request) => {
       parent: { database_id: MEMBERS_DB },
       properties: { Name: { title: text(name) }, Active: { checkbox: true } },
     });
+    await logChange("manager", "Member added", { summary: `Added member ${name}`, person: name, id: row.id });
     return json({ id: row.id, name });
   }
 
@@ -41,6 +47,8 @@ export default safe(async (request) => {
     const page = await notion(`/pages/${body.id}`);
     if (!page.parent || bare(page.parent.database_id) !== bare(MEMBERS_DB)) return json({ error: "Member not found." }, 404);
     await notion(`/pages/${page.id}`, "PATCH", { properties: { Active: { checkbox: false } } });
+    const name = plain(page.properties && page.properties.Name);
+    await logChange("manager", "Member removed", { summary: `Removed member ${name} (tick Active in Group 3 Members to bring back)`, person: name, id: page.id });
     return json({ ok: true });
   }
 
@@ -63,6 +71,8 @@ export default safe(async (request) => {
     return json({ error: "Unknown action." }, 400);
   }
   const updated = await notion(`/pages/${row.id}`, "PATCH", { properties });
+  const person = plain(row.properties.Person);
+  await logChange("manager", NAMES[action], { summary: `${NAMES[action]}: ${person}'s request`, person, before: describe(row), after: describe(updated), id: row.id });
   return json(toItem(updated));
 });
 

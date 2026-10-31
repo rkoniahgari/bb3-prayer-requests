@@ -469,7 +469,7 @@ function startApp(DATA) {
     return api("update", { id: item.id, change: change }).catch(saveFailed);
   }
   function saveFailed(err) {
-    notify("We could not save that just now. Please check your internet connection and try again.");
+    notify((err && err.friendly) || "We could not save that just now. Please check your internet connection and try again.");
     route(true);
     throw err;
   }
@@ -934,9 +934,9 @@ function startApp(DATA) {
       api("manage", { action: "paste", chat: chat }).then(function () {
         draft("mchat", "");
         return reload();
-      }).then(function () { notify("Sent. It will be added to the list " + nextSortTime() + ".", "ok"); }, function () {
+      }).then(function () { notify("Sent. It will be added to the list " + nextSortTime() + ".", "ok"); }, function (err) {
         submit.disabled = false; submit.textContent = "Send to be sorted";
-        notify("We could not send it just now. Your paste is saved. Please try again in a minute.");
+        notify((err && err.friendly) || "We could not send it just now. Your paste is saved. Please try again in a minute.");
       });
     });
     var inbox = DATA.inbox;
@@ -970,8 +970,8 @@ function startApp(DATA) {
     notify("The link is selected. Copy it from your phone's menu.", "ok");
   }
   function manage(body, doneMsg) {
-    return api("manage", body).then(function () { ui.mEdit = null; return reload(); }).then(function () { notify(doneMsg, "ok"); }, function () {
-      notify("That did not save. Please check your internet connection and try again.");
+    return api("manage", body).then(function () { ui.mEdit = null; return reload(); }).then(function () { notify(doneMsg, "ok"); }, function (err) {
+      notify((err && err.friendly) || "That did not save. Please check your internet connection and try again.");
     });
   }
 
@@ -1063,6 +1063,8 @@ function startApp(DATA) {
 var GROUP_KEY = decodeURIComponent(location.pathname.split("/")[1] || "");
 function readResponse(res) {
   if (res.status === 403) { location.replace("/private.html"); throw new Error("private"); }
+  // "Slow down" from the server comes with a plain message to show as-is.
+  if (res.status === 429) return res.json().then(function (j) { var e = new Error("HTTP 429"); e.friendly = j.error; throw e; });
   if (!res.ok) throw new Error("HTTP " + res.status);
   return res.json();
 }
