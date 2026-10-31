@@ -616,8 +616,9 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
 .search-input:focus { border-color: var(--accent); outline: 3px solid var(--accent-soft); outline-offset: 0; }
 .search-clear { position: absolute; right: .3rem; width: 46px; height: 46px; padding: 12px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; display: grid; }
 .search-clear:hover { background: var(--accent-soft); color: var(--accent); }
-.search-clear[hidden] { display: none; }
-.search-empty { color: var(--ink); background: var(--surface); border: 1.5px dashed var(--edge); border-radius: 14px; padding: 1rem 1.1rem; }
+.search-clear[hidden], .search-empty[hidden] { display: none; }
+.search-wrap { display: flex; flex-direction: column; gap: .75rem; }
+.search-empty { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; color: var(--ink); background: var(--surface); border: 1.5px dashed var(--edge); border-radius: 14px; padding: 1rem 1.1rem; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .pray-glow { position: relative; width: 6rem; height: 6rem; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); }
 .pray-glow::before, .pray-glow::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: pray-ring 2.4s ease-out 2; }
@@ -788,11 +789,19 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
 @media (max-width: 899px) {
   .tab-label { white-space: normal; overflow: visible; text-overflow: clip; text-align: center; line-height: 1.12; }
 }
+
+/* Manage > Members: search first, adding a member is one quiet button away */
+.members-tools { display: flex; flex-direction: column; gap: .75rem; align-items: stretch; }
+.add-member-btn { align-self: flex-start; }
+.member-add .linklike { align-self: flex-start; }
+/* Manage > From chat: only chats that need a decision */
+.check-list { display: flex; flex-direction: column; gap: .6rem; }
+.check-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .3rem; }
 </style>
 </head>
 <body>
 <script src="/app/early.js?v=91a9aa1617"></script>
 <main id="app" tabindex="-1"></main>
-<script src="/app/app.js?v=bed1bb1b84"></script>
+<script src="/app/app.js?v=a27a9015ed"></script>
 </body>
 </html>

@@ -37,11 +37,11 @@ export default safe(async (request, context) => {
   if (role(request) !== "manager") return denied();
   const body = await readBody(request);
   const action = body.action;
-  const NAMES = { paste: "Chat pasted", "member-add": "Member added", "member-remove": "Member removed", edit: "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored" };
+  const NAMES = { paste: "Chat pasted", "chat-done": "Chat checked", "member-add": "Member added", "member-remove": "Member removed", edit: "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored" };
   if (!NAMES[action]) return json({ error: "Unknown action." }, 400);
   // Start the speed check now; request changes look up the row at the same time.
   const slowCheck = tooFast("manager", ["member-remove", "edit", "hide", "archive"].includes(action) ? "remove" : "add");
-  if (!["paste", "member-add", "member-remove"].includes(action)) return changeRequest(action, body, context, slowCheck);
+  if (!["paste", "chat-done", "member-add", "member-remove"].includes(action)) return changeRequest(action, body, context, slowCheck);
   const slow = await slowCheck;
   if (slow) return slow;
 
@@ -65,6 +65,16 @@ export default safe(async (request, context) => {
       await notion(`/pages/${row.id}`, "PATCH", { properties: { Note: { rich_text: text("Adding to the prayer list now. This takes a few minutes.") } } }).catch(() => {});
     }
     return json({ id: row.id, status: "Waiting", pastedAt: now, sorting });
+  }
+
+  if (action === "chat-done") {
+    // Lisa or Rebecca fixed what the note asked about.
+    if (!isId(body.id)) return json({ error: "That chat was not found." }, 404);
+    const page = await notion(`/pages/${body.id}`);
+    if (!page.parent || bare(page.parent.database_id) !== bare(INBOX_DB)) return json({ error: "That chat was not found." }, 404);
+    await notion(`/pages/${page.id}`, "PATCH", { properties: { Status: { select: { name: "Added" } } } });
+    later(context, logChange("manager", "Chat checked", { summary: "A pasted chat was checked and marked done", id: page.id }));
+    return json({ ok: true });
   }
 
   if (action === "member-add") {

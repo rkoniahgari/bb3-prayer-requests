@@ -210,9 +210,8 @@ function startApp(DATA) {
         h("span", { class: "lead-text", text: "Tap a name to see their prayer requests." }),
         latest && today.length ? [" ", h("span", { class: "badge", text: "New" }), " marks a new request."] : null),
       memberSearch(),
-      h("p", { class: "search-empty", id: "search-empty", hidden: true }),
       h("ul", { class: "grid", id: "member-grid" }, everyone.map(function (p) {
-        return h("li", { "data-name": p.name.toLowerCase().replace(/[^a-z ]/g, "") }, h("a", { class: "tile" + (p.isNew ? " is-new" : ""), href: "#" + p.slug, id: "tile-" + p.slug,
+        return h("li", { "data-name": nameKey(p.name) }, h("a", { class: "tile" + (p.isNew ? " is-new" : ""), href: "#" + p.slug, id: "tile-" + p.slug,
             "aria-label": p.name + ", " + plural(p.open.length, "prayer request", "prayer requests") + (p.isNew ? ", new" : "") },
           p.isNew ? h("span", { class: "badge", "aria-hidden": "true", text: "New" }) : null,
           h("span", { class: "avatar", "aria-hidden": "true", text: initials(p.name) }),
@@ -225,35 +224,43 @@ function startApp(DATA) {
   // A quiet "Find a name" field. It hides the tiles that don't match as you type; nothing else moves.
   var SEARCH = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20.5 20.5"/></svg>';
   var CLOSE = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
-  function memberSearch() {
-    var input = h("input", { type: "search", id: "member-search", class: "search-input", placeholder: "Find a name",
-      "aria-label": "Find a member by name", autocomplete: "off", autocapitalize: "words", spellcheck: "false", enterkeyhint: "search",
-      "aria-controls": "member-grid", "aria-describedby": "search-status",
-      oninput: function () { ui.memberQuery = input.value; filterMembers(); },
-      onkeydown: function (e) { if (e.key === "Escape" && input.value) { e.preventDefault(); clear.click(); } } });
-    input.value = ui.memberQuery || "";
+  // A quiet search field. It hides list rows that don't match as you type; Enter never submits anything.
+  // o: id, list (id of the <ul>), state (ui key that remembers the words), label, empty(words) -> what to show when nothing matches.
+  function searchBox(o) {
+    var input = h("input", { type: "search", id: o.id, class: "search-input", placeholder: "Find a name",
+      "aria-label": o.label, autocomplete: "off", autocapitalize: "words", spellcheck: "false", enterkeyhint: "search",
+      "aria-controls": o.list, "aria-describedby": o.id + "-status",
+      oninput: function () { ui[o.state] = input.value; run(); },
+      onkeydown: function (e) {
+        if (e.key === "Enter") e.preventDefault();
+        if (e.key === "Escape" && input.value) { e.preventDefault(); clear.click(); }
+      } });
+    input.value = ui[o.state] || "";
     var clear = h("button", { type: "button", class: "search-clear", "aria-label": "Clear the search", title: "Clear the search", html: CLOSE,
-      hidden: !input.value, onclick: function () { input.value = ""; ui.memberQuery = ""; filterMembers(); input.focus(); } });
-    setTimeout(filterMembers, 0);
-    return h("div", { class: "search", role: "search" },
-      h("span", { class: "search-icon", html: SEARCH }), input, clear,
-      h("p", { class: "visually-hidden", id: "search-status", "aria-live": "polite" }));
+      hidden: !input.value, onclick: function () { input.value = ""; ui[o.state] = ""; run(); input.focus(); } });
+    var status = h("p", { class: "visually-hidden", id: o.id + "-status", "aria-live": "polite" });
+    var empty = h("div", { class: "search-empty", hidden: true });
+    function run() {
+      var list = document.getElementById(o.list);
+      if (!list) return;
+      var q = input.value.toLowerCase().replace(/[^a-z ]/g, "").trim(), shown = 0;
+      Array.prototype.forEach.call(list.children, function (li) {
+        var name = li.getAttribute("data-name") || "";
+        var match = !q || name.indexOf(q) === 0 || name.split(" ").some(function (w) { return w.indexOf(q) === 0; });
+        li.hidden = !match; if (match) shown++;
+      });
+      empty.hidden = !q || shown > 0;
+      if (!empty.hidden) empty.replaceChildren.apply(empty, [].concat(o.empty(input.value.trim().replace(/\s+/g, " "))));
+      clear.hidden = !input.value;
+      status.textContent = q ? plural(shown, "member", "members") + " found" : "";
+    }
+    setTimeout(run, 0);
+    return h("div", { class: "search-wrap" }, h("div", { class: "search", role: "search" }, h("span", { class: "search-icon", html: SEARCH }), input, clear, status), empty);
   }
-  function filterMembers() {
-    var input = document.getElementById("member-search");
-    if (!input) return;
-    var q = input.value.toLowerCase().replace(/[^a-z ]/g, "").trim();
-    var shown = 0;
-    document.querySelectorAll("#member-grid > li").forEach(function (li) {
-      var name = li.getAttribute("data-name");
-      var match = !q || name.split(" ").some(function (w) { return w.indexOf(q) === 0; }) || name.indexOf(q) === 0;
-      li.hidden = !match; if (match) shown++;
-    });
-    var empty = document.getElementById("search-empty");
-    empty.hidden = !q || shown > 0;
-    empty.textContent = "No one by that name. Check the spelling, or clear the search to see everyone.";
-    document.querySelector(".search-clear").hidden = !input.value;
-    document.getElementById("search-status").textContent = q ? plural(shown, "member", "members") + " found" : "";
+  var nameKey = function (n) { return n.toLowerCase().replace(/[^a-z ]/g, ""); };
+  function memberSearch() {
+    return searchBox({ id: "member-search", list: "member-grid", state: "memberQuery", label: "Find a member by name",
+      empty: function () { return "No one by that name. Check the spelling, or clear the search to see everyone."; } });
   }
 
   function reqCard(it, showName, canUpdate) {
@@ -844,7 +851,7 @@ function startApp(DATA) {
     if (DATA.role !== "manager") return todayPage();
     var section = page === "manage-members" ? "members" : page === "manage-chat" ? "chat" : "requests";
     var all = DATA.all || [];
-    var waiting = (DATA.inbox || []).filter(function (c) { return c.status === "Waiting"; }).length;
+    var waiting = (DATA.inbox || []).filter(function (c) { return c.status === "Needs a look"; }).length;
     var sections = [
       ["requests", "#manage", "Requests", all.filter(function (it) { return !it.archived; }).length],
       ["members", "#manage-members", "Members", (DATA.memberRows || []).length],
@@ -918,27 +925,48 @@ function startApp(DATA) {
         h("button", { type: "button", class: "btn", onclick: function () { ui.mConfirm = null; route(true); } }, "Cancel")) : null);
   }
 
+  function openAdd(name) {
+    ui.mAdding = true; ui.mAddName = name || ""; ui.mQuery = "";
+    route(true);
+    setTimeout(function () { var el = document.getElementById("m-new"); if (el) el.focus(); }, 0);
+  }
   function manageMembers() {
     var link = location.origin + "/" + encodeURIComponent(DATA.memberPath || "");
-    var input = h("input", { id: "m-new", class: "input", type: "text", maxlength: "60", autocomplete: "off", placeholder: "For example: Grace O.", "aria-describedby": "m-new-help m-new-err" });
-    var err = h("p", { class: "error", id: "m-new-err", hidden: true, text: "Please type a name." });
-    return h("section", { class: "top", "aria-label": "Members" },
-      h("div", { class: "link-box" },
-        h("div", { class: "link-main" }, h("p", { class: "link-label", text: "Group link" }), h("p", { class: "link-text", text: link })),
-        copyButton(link)),
-      h("form", { class: "member-add", novalidate: true, onsubmit: function (e) {
+    var addArea;
+    if (ui.mAdding) {
+      var input = h("input", { id: "m-new", class: "input", type: "text", maxlength: "60", autocomplete: "off", autocapitalize: "words", placeholder: "For example: Grace O.", "aria-describedby": "m-new-help m-new-err" });
+      input.value = ui.mAddName || "";
+      var err = h("p", { class: "error", id: "m-new-err", hidden: true, text: "Please type a name." });
+      addArea = h("form", { class: "member-add", novalidate: true, onsubmit: function (e) {
           e.preventDefault();
           var n = input.value.trim().replace(/\s+/g, " ");
           err.hidden = !!n;
           if (!n) { input.setAttribute("aria-invalid", "true"); input.focus(); return; }
+          ui.mAdding = false; ui.mAddName = "";
           manage({ action: "member-add", name: n }, n + " was added.");
         } },
-        fieldLabel("m-new", "Add a member", true),
+        fieldLabel("m-new", "New member\u2019s name", true),
         helpText("m-new-help", "First name and last initial."),
         h("div", { class: "inline-add" }, input, h("button", { type: "submit", class: "btn primary" }, "Add")),
-        err),
-      h("ul", { class: "manage-list" }, (DATA.memberRows || []).map(function (m) {
-        return h("li", { class: "m-row" },
+        err,
+        h("button", { type: "button", class: "linklike", onclick: function () { ui.mAdding = false; ui.mAddName = ""; route(true); } }, "Cancel"));
+    } else {
+      addArea = h("button", { type: "button", class: "btn add-member-btn", onclick: function () { openAdd(""); } }, h("span", { "aria-hidden": "true", text: "+ " }), "Add a member");
+    }
+    return h("section", { class: "top", "aria-label": "Members" },
+      h("div", { class: "link-box" },
+        h("div", { class: "link-main" }, h("p", { class: "link-label", text: "Group link" }), h("p", { class: "link-text", text: link })),
+        copyButton(link)),
+      h("div", { class: "members-tools" },
+        ui.mAdding ? null : searchBox({ id: "m-search", list: "m-member-list", state: "mQuery", label: "Find a member by name",
+          empty: function (words) {
+            var name = words.replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); });
+            return [h("span", { text: "No one by that name." }),
+              h("button", { type: "button", class: "btn", onclick: function () { openAdd(name); } }, "Add \u201C" + name + "\u201D as a member")];
+          } }),
+        addArea),
+      h("ul", { class: "manage-list", id: "m-member-list" }, (DATA.memberRows || []).map(function (m) {
+        return h("li", { class: "m-row", "data-name": nameKey(m.name) },
           h("div", { class: "m-line" },
             h("span", { class: "avatar m-av", "aria-hidden": "true", text: initials(m.name) }),
             h("p", { class: "m-name member", text: m.name }),
@@ -984,21 +1012,22 @@ function startApp(DATA) {
       });
     });
     var inbox = DATA.inbox;
-    var STATUS = { "Waiting": "waiting", "Added": "added", "Needs a look": "needs" };
-    // Plain words for each step, instead of the database's status names.
-    function statusLabel(c) { return c.status === "Added" ? "On the list" : c.status === "Needs a look" ? "Please check" : c.note ? "Adding\u2026" : "Waiting"; }
-    return h("section", { class: "top", "aria-label": "Add from chat" }, form,
-      h("h2", { class: "section-title", text: "Recently pasted" }),
-      inbox === null ? h("p", { class: "empty-note", text: "The Chat Inbox is not connected yet. In Notion, connect the “Group 3 Chat Inbox” list to the prayer app." })
-        : !inbox || !inbox.length ? h("p", { class: "empty-note", text: "Chats you paste will show here, with what was added." })
-        : h("ul", { class: "manage-list" }, inbox.map(function (c) {
-            return h("li", { class: "m-row chat-row" },
-              h("p", { class: "m-name" }, h("span", { class: "status " + (STATUS[c.status] || "waiting"), text: statusLabel(c) }),
-                h("span", { class: "m-date", text: " \u00B7 " + new Date(c.pastedAt).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) })),
-              h("p", { class: "m-text quiet", text: c.preview + (c.preview.length >= 140 ? "…" : "") }),
-              c.status === "Waiting" && !c.note ? h("p", { class: "hint", text: "Will be added " + nextSortTime(c.pastedAt) + "." }) : null,
-              c.note ? h("p", { class: "m-note", text: c.note }) : null);
-          })));
+    // Adding is automatic, so the only thing worth showing is a chat where a name needs a person's decision.
+    var toCheck = (inbox || []).filter(function (c) { return c.status === "Needs a look"; });
+    return h("section", { class: "top", "aria-label": "Add from chat" },
+      inbox === null ? h("p", { class: "empty-note", text: "The Chat Inbox is not connected yet. In Notion, connect the \u201CGroup 3 Chat Inbox\u201D list to the prayer app." }) : null,
+      toCheck.length ? h("section", { class: "check-list", "aria-labelledby": "check-title" },
+        h("h2", { class: "section-title", id: "check-title", text: "Please check" }),
+        h("p", { class: "hint", text: "Fix the name in Requests with the pencil button, then tap Done." }),
+        h("ul", { class: "manage-list" }, toCheck.map(function (c) {
+          return h("li", { class: "m-row chat-row" },
+            h("p", { class: "m-note", text: c.note || "Part of this chat could not be added." }),
+            h("p", { class: "m-date", text: "Pasted " + new Date(c.pastedAt).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) }),
+            h("div", { class: "check-actions" },
+              h("a", { class: "btn", href: "#manage" }, "Go to Requests"),
+              h("button", { type: "button", class: "btn primary", onclick: function () { manage({ action: "chat-done", id: c.id }, "Thanks. That\u2019s done."); } }, "Done")));
+        }))) : null,
+      form);
   }
 
   function copyButton(textToCopy) {
@@ -1101,7 +1130,7 @@ function startApp(DATA) {
     // A fresh copy arrived from Notion: redraw, unless someone is in the middle of typing.
     refresh: function (d) {
       DATA = d; prepare(); shape(); updateBadge();
-      if (!/^(add|update|praise-add|paste|manage-chat)$/.test(currentKey()) && !ui.mEdit && !(document.activeElement && document.activeElement.id === "member-search")) route(true);
+      if (!/^(add|update|praise-add|paste|manage-chat)$/.test(currentKey()) && !ui.mEdit && !(document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName))) route(true);
     },
   };
 }
