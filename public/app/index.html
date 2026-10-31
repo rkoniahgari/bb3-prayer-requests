@@ -708,6 +708,18 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
 .seg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .seg-btn { min-width: 0; flex-wrap: wrap; gap: .25rem; }
 @media (max-width: 380px) { .seg-btn { font-size: .88rem; padding-inline: .2rem; } }
+/* ---- request filters: quiet text tabs with an underline, not buttons ---- */
+.chips { display: flex; flex-wrap: nowrap; gap: 1.4rem; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.chip {
+  display: inline-flex; align-items: baseline; gap: .4rem; min-height: 46px; padding: .6rem 0 .55rem;
+  border: 0; border-bottom: 3px solid transparent; border-radius: 0; margin-bottom: -1px; background: none;
+  color: var(--muted); font-weight: 600; font-size: 1rem; white-space: nowrap; cursor: pointer;
+}
+.chip:hover { color: var(--ink); }
+.chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 700; border-bottom-color: var(--accent); }
+.chip-count { font-weight: 400; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] .chip-count { color: var(--accent); font-weight: 600; }
+.chip:focus-visible { outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -1537,7 +1549,8 @@ function startApp(DATA) {
     return h("section", { class: "top", "aria-label": "Prayer requests" },
       h("div", { class: "chips", role: "group", "aria-label": "Show" }, chips.map(function (c) {
         return h("button", { type: "button", class: "chip", "aria-pressed": String(f === c[0]),
-          onclick: function () { ui.mFilter = c[0]; ui.mEdit = null; ui.mConfirm = null; route(true); } }, c[1] + " (" + groups[c[0]].length + ")");
+          onclick: function () { ui.mFilter = c[0]; ui.mEdit = null; ui.mConfirm = null; route(true); } },
+          h("span", { text: c[1] }), h("span", { class: "chip-count", text: String(groups[c[0]].length) }));
       })),
       rows.length ? h("ul", { class: "manage-list" }, rows.map(manageRow))
         : h("p", { class: "empty-note", text: f === "list" ? "No prayer requests on the list." : f === "hidden" ? "Nothing is hidden." : "Nothing has been removed." }));
