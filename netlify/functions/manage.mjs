@@ -3,6 +3,35 @@ import { MEMBERS_DB, INBOX_DB, isId, notion, role, json, denied, readBody, clean
 
 const bare = (id) => String(id || "").replace(/-/g, "");
 
+// Start the Claude routine that sorts pasted chats, right away instead of at the next scheduled time.
+// Needs ROUTINE_FIRE_URL and ROUTINE_TOKEN in Netlify. Returns true if sorting started.
+async function startSorting(inboxRowId) {
+  const url = process.env.ROUTINE_FIRE_URL, token = process.env.ROUTINE_TOKEN;
+  if (!url || !token) return false;
+  if (!/^https:\/\/api\.anthropic\.com\/v1\/claude_code\/routines\/trig_\w+\/fire$/.test(url)) {
+    console.error("ROUTINE_FIRE_URL doesn't look like a routine fire address; not sending.");
+    return false;
+  }
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta": "experimental-cc-routine-2026-04-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: `Chat Inbox row: ${inboxRowId}` }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) { console.error("Routine did not start:", res.status, await res.text()); return false; }
+    return true;
+  } catch (err) {
+    console.error("Routine did not start:", err.message);
+    return false;
+  }
+}
+
 export default safe(async (request, context) => {
   if (request.method !== "POST") return json({ error: "Use POST." }, 405);
   if (role(request) !== "manager") return denied();
@@ -31,7 +60,11 @@ export default safe(async (request, context) => {
       },
     });
     later(context, logChange("manager", "Chat pasted", { summary: "Zoom chat pasted (see Group 3 Chat Inbox)", id: row.id }));
-    return json({ id: row.id, status: "Waiting", pastedAt: now });
+    const sorting = await startSorting(row.id);
+    if (sorting) {
+      await notion(`/pages/${row.id}`, "PATCH", { properties: { Note: { rich_text: text("Being sorted now. This usually takes a few minutes.") } } }).catch(() => {});
+    }
+    return json({ id: row.id, status: "Waiting", pastedAt: now, sorting });
   }
 
   if (action === "member-add") {

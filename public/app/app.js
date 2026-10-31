@@ -969,10 +969,16 @@ function startApp(DATA) {
       err.hidden = !!chat;
       if (!chat) { box.setAttribute("aria-invalid", "true"); box.focus(); return; }
       submit.disabled = true; submit.textContent = "Sending…";
-      api("manage", { action: "paste", chat: chat }).then(function () {
+      var sortingNow = false;
+      api("manage", { action: "paste", chat: chat }).then(function (res) {
+        sortingNow = !!(res && res.sorting);
         draft("mchat", "");
         return reload();
-      }).then(function () { notify("Sent. It will be added to the list " + nextSortTime() + ".", "ok"); }, function (err) {
+      }).then(function () {
+        notify(sortingNow ? "Sent. It\u2019s being sorted now and will be on the list in a few minutes." : "Sent. It will be added to the list " + nextSortTime() + ".", "ok");
+        // Check back for the result while the page is open.
+        if (sortingNow) [120000, 300000].forEach(function (ms) { setTimeout(function () { reload().catch(function () {}); }, ms); });
+      }, function (err) {
         submit.disabled = false; submit.textContent = "Send to be sorted";
         notify((err && err.friendly) || "We could not send it just now. Your paste is saved. Please try again in a minute.");
       });
@@ -988,7 +994,7 @@ function startApp(DATA) {
               h("p", { class: "m-name" }, h("span", { class: "status " + (STATUS[c.status] || "waiting"), text: c.status }),
                 h("span", { class: "m-date", text: " Sent " + new Date(c.pastedAt).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) })),
               h("p", { class: "m-text quiet", text: c.preview + (c.preview.length >= 140 ? "…" : "") }),
-              c.status === "Waiting" ? h("p", { class: "hint", text: "Will be added " + nextSortTime(c.pastedAt) + "." }) : null,
+              c.status === "Waiting" && !c.note ? h("p", { class: "hint", text: "Will be added " + nextSortTime(c.pastedAt) + "." }) : null,
               c.note ? h("p", { class: "m-note", text: c.note }) : null);
           })));
   }

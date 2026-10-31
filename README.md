@@ -91,3 +91,19 @@ Members then need the new link (and to re-add the home-screen icon).
 1. Change MEMBER_PATH (or MANAGER_PATH) in Netlify and redeploy. The old link stops working at once.
 2. Open the Activity Log in Notion, filter by the time it happened, and use Manage → Removed → Restore (or the *Before* column) to put things back.
 3. Share the new link with the group.
+
+## Sort pasted chats right away (optional)
+
+When a chat is sent from Manage → From chat, the page can start the Claude routine at once instead of
+waiting for its Mon/Wed/Fri 12:23 pm run. Runs use your Claude plan, not a paid API.
+
+1. Open https://claude.ai/code/routines → **Group 3 prayer list update** → **Edit**.
+2. Make sure the **Notion** connector is added and the routine is **on**.
+3. In **Trigger**, click **+** → **API**. Copy the **Fire URL**, then click **Generate token** and copy the token (it is shown once).
+4. In Netlify → Site configuration → Environment variables, add:
+   - `ROUTINE_FIRE_URL` = the Fire URL
+   - `ROUTINE_TOKEN` = the token
+5. Redeploy.
+
+The token stays on the server; the page never sees it. If it leaks, click **Regenerate** on the routine
+and paste the new one into Netlify. Without these two values, chats are simply sorted at the next scheduled run.
