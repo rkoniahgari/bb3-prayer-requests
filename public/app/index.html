@@ -720,6 +720,24 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
 .chip-count { font-weight: 400; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .chip[aria-pressed="true"] .chip-count { color: var(--accent); font-weight: 600; }
 .chip:focus-visible { outline-offset: 2px; }
+/* ---- first-visit placeholder: the page's outline, softly shimmering ---- */
+.skel { display: flex; flex-direction: column; gap: .9rem; }
+.skel-brand { display: flex; align-items: center; gap: .85rem; padding-bottom: .85rem; border-bottom: 1px solid var(--line); }
+.skel-brand img { width: 6.4rem; height: auto; border-radius: 10px; }
+.sk { display: block; height: 1rem; border-radius: 8px; background: linear-gradient(90deg, var(--line) 0%, var(--bg) 50%, var(--line) 100%); background-size: 200% 100%; animation: sk-shimmer 1.4s ease-in-out infinite; }
+.sk-title { height: 1.9rem; width: 70%; }
+.sk-w40 { width: 40%; } .sk-w45 { width: 45%; } .sk-w55 { width: 55%; } .sk-w75 { width: 75%; }
+.skel-list { margin-top: .6rem; background: var(--surface); border: 1px solid var(--edge); border-radius: 20px; overflow: hidden; }
+.skel-row { display: flex; align-items: center; gap: .75rem; padding: 1rem; border-top: 1px solid var(--line); }
+.skel-row:first-child { border-top: 0; }
+.sk-dot { flex: none; width: 2.3rem; height: 2.3rem; border-radius: 50%; }
+.skel-col { flex: 1; display: flex; flex-direction: column; gap: .5rem; }
+.skel-bar { display: none; }
+@media (max-width: 899px) { .skel-bar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: calc(76px + env(safe-area-inset-bottom, 0px)); background: var(--bar-bg); } }
+@keyframes sk-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.fade-in { animation: fade-in .35s ease-out; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sk, .fade-in { animation: none; } }
 </style>
 </head>
 <body>
@@ -1192,6 +1210,7 @@ function startApp(DATA) {
   }
   function reload() {
     return api("data").then(function (d) {
+      writeCache(d);
       DATA = d; prepare(); shape(); updateBadge();
       if (!/^#(add|update|praise-add|paste)$/.test(location.hash)) route(true);
     });
@@ -1717,6 +1736,13 @@ function startApp(DATA) {
   }
   window.addEventListener("hashchange", function () { route("focus"); });
   route();
+  return {
+    // A fresh copy arrived from Notion: redraw, unless someone is in the middle of typing.
+    refresh: function (d) {
+      DATA = d; prepare(); shape(); updateBadge();
+      if (!/^#(add|update|praise-add|paste|manage-chat)$/.test(location.hash) && !ui.mEdit) route(true);
+    },
+  };
 }
 // ---------- start-up: the link itself is the key ----------
 var GROUP_KEY = decodeURIComponent(location.pathname.split("/")[1] || "");
@@ -1746,11 +1772,38 @@ function notify(message, kind) {
   clearTimeout(noticeTimer);
   noticeTimer = setTimeout(function () { noticeEl.hidden = true; }, 7000);
 }
+// The list is kept on this device so the page opens instantly next time;
+// a fresh copy is fetched in the background and the page updates if anything changed.
+var CACHE_KEY = "g3-list-" + GROUP_KEY;
+function readCache() {
+  try { var c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); return c && c.data && c.data.items ? c.data : null; } catch (e) { return null; }
+}
+function writeCache(d) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), data: d })); } catch (e) {}
+}
+var SKELETON = '<div class="skel" aria-hidden="true">' +
+  '<div class="skel-brand"><img src="/app/logo.webp" alt="" width="720" height="405"><span class="sk sk-w40"></span></div>' +
+  '<span class="sk sk-title"></span><span class="sk sk-w55"></span>' +
+  '<div class="skel-list">' + new Array(5).join('<div class="skel-row"><span class="sk sk-dot"></span><span class="skel-col"><span class="sk sk-w45"></span><span class="sk sk-w75"></span></span></div>') + '</div>' +
+  '</div><div class="skel-bar" aria-hidden="true"></div><p class="sr">Loading the prayer list</p>';
 (function boot() {
   var app = document.getElementById("app");
-  app.innerHTML = '<p class="loading">Loading the prayer list…</p>';
-  api("data").then(startApp, function (err) {
+  var cached = readCache();
+  if (cached) {
+    var live = startApp(cached);
+    api("data").then(function (d) { writeCache(d); live.refresh(d); }, function () {});
+    return;
+  }
+  app.setAttribute("aria-busy", "true");
+  app.innerHTML = SKELETON;
+  api("data").then(function (d) {
+    writeCache(d);
+    app.removeAttribute("aria-busy");
+    app.classList.add("fade-in");
+    startApp(d);
+  }, function (err) {
     if (String(err && err.message) === "private") return;
+    app.removeAttribute("aria-busy");
     app.innerHTML = '<div class="empty"><strong>The prayer list could not load.</strong><p>Please check your internet connection.</p><button type="button" class="btn primary" id="retry">Try again</button></div>';
     document.getElementById("retry").onclick = boot;
   });
