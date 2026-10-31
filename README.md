@@ -94,7 +94,7 @@ Members then need the new link (and to re-add the home-screen icon).
 
 ## Sort pasted chats right away (optional)
 
-When a chat is sent from Manage → From chat, the page can start the Claude routine at once instead of
+When a chat is added from Manage → From chat, the page can start the Claude routine at once instead of
 waiting for its Mon/Wed/Fri 12:23 pm run. Runs use your Claude plan, not a paid API.
 
 1. Open https://claude.ai/code/routines → **Group 3 prayer list update** → **Edit**.

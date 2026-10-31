@@ -62,7 +62,7 @@ export default safe(async (request, context) => {
     later(context, logChange("manager", "Chat pasted", { summary: "Zoom chat pasted (see Group 3 Chat Inbox)", id: row.id }));
     const sorting = await startSorting(row.id);
     if (sorting) {
-      await notion(`/pages/${row.id}`, "PATCH", { properties: { Note: { rich_text: text("Being sorted now. This usually takes a few minutes.") } } }).catch(() => {});
+      await notion(`/pages/${row.id}`, "PATCH", { properties: { Note: { rich_text: text("Adding to the prayer list now. This takes a few minutes.") } } }).catch(() => {});
     }
     return json({ id: row.id, status: "Waiting", pastedAt: now, sorting });
   }

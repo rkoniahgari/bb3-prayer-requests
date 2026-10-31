@@ -957,7 +957,7 @@ function startApp(DATA) {
     box.value = saved;
     box.addEventListener("input", function () { draft("mchat", box.value); });
     var err = h("p", { class: "error", id: "mc-err", hidden: true, text: "Please paste the chat first." });
-    var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Send the chat to be sorted onto the list" }, "Send to be sorted");
+    var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Add these requests to the prayer list" }, "Add to the prayer list");
     var form = h("form", { class: "form", novalidate: true },
       h("div", { class: "field" }, fieldLabel("mc-text", "Zoom chat", true),
         helpText("mc-help", "Paste the prayer requests from the Zoom chat here."),
@@ -968,31 +968,33 @@ function startApp(DATA) {
       var chat = box.value.trim();
       err.hidden = !!chat;
       if (!chat) { box.setAttribute("aria-invalid", "true"); box.focus(); return; }
-      submit.disabled = true; submit.textContent = "Sending…";
+      submit.disabled = true; submit.textContent = "Adding…";
       var sortingNow = false;
       api("manage", { action: "paste", chat: chat }).then(function (res) {
         sortingNow = !!(res && res.sorting);
         draft("mchat", "");
         return reload();
       }).then(function () {
-        notify(sortingNow ? "Sent. It\u2019s being sorted now and will be on the list in a few minutes." : "Sent. It will be added to the list " + nextSortTime() + ".", "ok");
+        notify("Thank you! These requests will be on the prayer list " + (sortingNow ? "in a few minutes." : nextSortTime() + "."), "ok");
         // Check back for the result while the page is open.
         if (sortingNow) [120000, 300000].forEach(function (ms) { setTimeout(function () { reload().catch(function () {}); }, ms); });
       }, function (err) {
-        submit.disabled = false; submit.textContent = "Send to be sorted";
+        submit.disabled = false; submit.textContent = "Add to the prayer list";
         notify((err && err.friendly) || "We could not send it just now. Your paste is saved. Please try again in a minute.");
       });
     });
     var inbox = DATA.inbox;
     var STATUS = { "Waiting": "waiting", "Added": "added", "Needs a look": "needs" };
+    // Plain words for each step, instead of the database's status names.
+    function statusLabel(c) { return c.status === "Added" ? "On the list" : c.status === "Needs a look" ? "Please check" : c.note ? "Adding\u2026" : "Waiting"; }
     return h("section", { class: "top", "aria-label": "Add from chat" }, form,
-      h("h2", { class: "section-title", text: "Recent chats" }),
+      h("h2", { class: "section-title", text: "Recently pasted" }),
       inbox === null ? h("p", { class: "empty-note", text: "The Chat Inbox is not connected yet. In Notion, connect the “Group 3 Chat Inbox” list to the prayer app." })
-        : !inbox || !inbox.length ? h("p", { class: "empty-note", text: "Chats you send will show here, with what happened to them." })
+        : !inbox || !inbox.length ? h("p", { class: "empty-note", text: "Chats you paste will show here, with what was added." })
         : h("ul", { class: "manage-list" }, inbox.map(function (c) {
             return h("li", { class: "m-row chat-row" },
-              h("p", { class: "m-name" }, h("span", { class: "status " + (STATUS[c.status] || "waiting"), text: c.status }),
-                h("span", { class: "m-date", text: " Sent " + new Date(c.pastedAt).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) })),
+              h("p", { class: "m-name" }, h("span", { class: "status " + (STATUS[c.status] || "waiting"), text: statusLabel(c) }),
+                h("span", { class: "m-date", text: " \u00B7 " + new Date(c.pastedAt).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) })),
               h("p", { class: "m-text quiet", text: c.preview + (c.preview.length >= 140 ? "…" : "") }),
               c.status === "Waiting" && !c.note ? h("p", { class: "hint", text: "Will be added " + nextSortTime(c.pastedAt) + "." }) : null,
               c.note ? h("p", { class: "m-note", text: c.note }) : null);
