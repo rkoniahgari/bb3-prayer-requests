@@ -1,5 +1,5 @@
 // Manager-only actions: fix or hide requests, and keep the member list up to date.
-import { MEMBERS_DB, notion, role, json, denied, readBody, clean, text, requestRow, toItem } from "../lib/notion.mjs";
+import { MEMBERS_DB, INBOX_DB, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem } from "../lib/notion.mjs";
 
 const bare = (id) => String(id || "").replace(/-/g, "");
 
@@ -8,6 +8,23 @@ export default async (request) => {
   if (role(request) !== "manager") return denied();
   const body = await readBody(request);
   const action = body.action;
+
+  if (action === "paste") {
+    const chat = String(body.chat || "").replace(/\r\n/g, "\n").trim().slice(0, 40000);
+    if (!chat) return json({ error: "Please paste the chat first." }, 400);
+    const now = new Date().toISOString();
+    const row = await notion("/pages", "POST", {
+      parent: { database_id: INBOX_DB },
+      properties: {
+        Title: { title: text("Chat pasted " + now.slice(0, 10)) },
+        Chat: { rich_text: longText(chat) },
+        Status: { select: { name: "Waiting" } },
+        "Pasted by": { rich_text: text("Manage page") },
+        "Pasted at": { date: { start: now } },
+      },
+    });
+    return json({ id: row.id, status: "Waiting", pastedAt: now });
+  }
 
   if (action === "member-add") {
     const name = clean(body.name, 60);

@@ -2,6 +2,7 @@
 const API = "https://api.notion.com/v1";
 export const REQUESTS_DB = process.env.REQUESTS_DB || "a6df3e46824040d2b752ab19497fb0eb";
 export const MEMBERS_DB = process.env.MEMBERS_DB || "f808ba54207640bf973ee98d707b58bc";
+export const INBOX_DB = process.env.INBOX_DB || "f9d78d0b73514a3eb7ccdc7eb057cb6b";
 
 export async function notion(path, method = "GET", body) {
   const res = await fetch(API + path, {
@@ -53,6 +54,12 @@ export const clean = (s, max) => String(s ?? "").replace(/\s+/g, " ").trim().sli
 export const plain = (prop) => ((prop && (prop.title || prop.rich_text)) || []).map((t) => t.plain_text).join("").trim();
 export const day = (prop) => (prop && prop.date && prop.date.start ? prop.date.start.slice(0, 10) : null);
 export const text = (s) => [{ type: "text", text: { content: String(s).slice(0, 2000) } }];
+// Long text (like a whole Zoom chat) is stored in 2,000-character pieces, which is Notion's limit per piece.
+export const longText = (s) => {
+  const str = String(s).slice(0, 40000), out = [];
+  for (let i = 0; i < str.length; i += 2000) out.push({ type: "text", text: { content: str.slice(i, i + 2000) } });
+  return out;
+};
 export const todayET = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
 const bare = (id) => String(id || "").replace(/-/g, "");
 

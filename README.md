@@ -14,7 +14,14 @@ The list is stored in Notion. The site runs on Netlify's free plan.
 
 - Every page sends `noindex` headers and `robots.txt` blocks crawlers, so search engines will not list it.
 - The data endpoints (`/api/*`) answer only when the request carries the member or manager link.
-- Data lives in two Notion databases: **Group 3 Prayer Requests** and **Group 3 Members**.
+- Data lives in three Notion databases: **Group 3 Prayer Requests**, **Group 3 Members** and **Group 3 Chat Inbox**.
+
+## Manage page (manager link only)
+- **Requests** — filter by On the list / Hidden / Removed; edit, hide/show, remove (with confirm) and restore.
+- **Members** — copy the group link, add a member, remove a member (with confirm).
+- **From chat** — paste the Zoom chat as it is. It is saved to the Chat Inbox as *Waiting*. The Claude routine
+  ("Group 3 prayer list update", Mon/Wed/Fri 12:23 pm Eastern) sorts it into the prayer list and marks it
+  *Added* or *Needs a look* with a short note, which shows on this page.
 
 ## Set up (about 15 minutes)
 
@@ -24,7 +31,7 @@ The list is stored in Notion. The site runs on Netlify's free plan.
 3. Under **Capabilities**, tick **Read content**, **Update content** and **Insert content**. Save.
 4. Copy the **Internal integration secret** (it starts with `ntn_`). Keep it private.
 5. Open **Group 3 Prayer Requests** in Notion → **•••** (top right) → **Connections** → add **Group 3 prayer app**.
-6. Do the same for **Group 3 Members**.
+6. Do the same for **Group 3 Members** and **Group 3 Chat Inbox**.
 
 ### 2. Put the site on Netlify
 1. In Netlify choose **Add new project → Import an existing project → GitHub** and pick **bb3-prayer-requests**.
@@ -52,5 +59,5 @@ Members then need the new link (and to re-add the home-screen icon).
 - `public/app/index.html` — the whole app (design approved in the prototype). Loads data from `/api/data`.
 - `public/private.html` — the page strangers see.
 - `netlify/edge-functions/gate.js` — sends the two links to the app and everything else to the private page.
-- `netlify/functions/` — `data` (read), `add` (new request or praise), `update` (answered / removed / undo), `manage` (manager-only edits and members).
+- `netlify/functions/` — `data` (read), `add` (new request or praise), `update` (answered / removed / undo), `manage` (manager-only: edits, members, pasting a chat).
 - `netlify/lib/notion.mjs` — shared Notion helpers and the link check.

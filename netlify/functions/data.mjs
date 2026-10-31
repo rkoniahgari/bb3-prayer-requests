@@ -1,5 +1,5 @@
 // Everything the page needs: members and prayer requests. Managers also get hidden and removed ones.
-import { MEMBERS_DB, REQUESTS_DB, queryAll, role, json, denied, toItem, plain } from "../lib/notion.mjs";
+import { MEMBERS_DB, REQUESTS_DB, INBOX_DB, queryAll, role, json, denied, toItem, plain } from "../lib/notion.mjs";
 
 export default async (request) => {
   const who = role(request);
@@ -17,7 +17,21 @@ export default async (request) => {
   const items = all.filter((it) => !it.hidden && !it.archived);
   const updated = items.reduce((m, it) => [it.added, it.answered || ""].reduce((a, b) => (b > a ? b : a), m), "");
   const out = { role: who, members: members.map((m) => m.name), items, updated: updated || null };
-  if (who === "manager") Object.assign(out, { all, memberRows: members, memberPath: process.env.MEMBER_PATH || "" });
+  if (who === "manager") {
+    Object.assign(out, { all, memberRows: members, memberPath: process.env.MEMBER_PATH || "" });
+    try {
+      const chats = await queryAll(INBOX_DB, { sorts: [{ property: "Pasted at", direction: "descending" }], page_size: 20 });
+      out.inbox = chats.slice(0, 10).map((r) => ({
+        id: r.id,
+        status: (r.properties.Status && r.properties.Status.select && r.properties.Status.select.name) || "Waiting",
+        pastedAt: (r.properties["Pasted at"] && r.properties["Pasted at"].date && r.properties["Pasted at"].date.start) || r.created_time,
+        preview: plain(r.properties.Chat).replace(/\s+/g, " ").slice(0, 140),
+        note: plain(r.properties.Note),
+      }));
+    } catch (e) {
+      out.inbox = null; // the Chat Inbox is not connected to the integration yet
+    }
+  }
   return json(out);
 };
 

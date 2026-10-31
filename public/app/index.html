@@ -652,6 +652,49 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
 .confirm-q { font-weight: 700; }
 .member-add { display: flex; flex-direction: column; gap: .7rem; align-items: flex-start; }
 .member-add .field { width: 100%; }
+/* ---- manage page: sections, compact rows, icon buttons ---- */
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: .3rem; padding: .3rem; background: var(--accent-soft); border-radius: 14px; }
+.seg-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 48px; padding: .3rem .4rem; border-radius: 11px; text-decoration: none; color: var(--accent); font-weight: 700; font-size: .95rem; text-align: center; line-height: 1.2; }
+.seg-btn[aria-current="page"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
+.seg-count { min-width: 1.5rem; padding: 0 .4rem; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: .78rem; line-height: 1.5; }
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chip { min-height: 44px; padding: .3rem .85rem; border-radius: 999px; border: 1.5px solid var(--edge); background: var(--surface); color: var(--ink); font-weight: 600; font-size: .95rem; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.m-row { display: flex; flex-direction: column; gap: .6rem; padding: .85rem .9rem; border-top: 1px solid var(--line); }
+.m-line { display: flex; align-items: flex-start; gap: .75rem; }
+.m-av { flex: none; width: 2.3rem; height: 2.3rem; font-size: .82rem; }
+.m-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .2rem; align-items: flex-start; }
+.m-name { font-weight: 700; line-height: 1.35; }
+.m-name.member { flex: 1; align-self: center; }
+.m-date { font-weight: 400; color: var(--muted); font-size: .9rem; }
+.m-text { overflow-wrap: anywhere; line-height: 1.45; }
+.m-text.quiet { color: var(--muted); font-size: .95rem; }
+.m-note { background: var(--bg); border-radius: 10px; padding: .45rem .7rem; font-size: .95rem; }
+.m-actions { flex: none; display: flex; gap: .25rem; }
+.icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 12px; background: transparent; color: var(--accent); cursor: pointer; }
+.icon-btn svg { width: 1.3rem; height: 1.3rem; }
+.icon-btn:hover { background: var(--accent-soft); }
+.icon-btn.danger { color: var(--danger); }
+.icon-btn.danger:hover { background: var(--bg); }
+.m-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .7rem .8rem; border-radius: 12px; background: var(--bg); font-weight: 700; }
+.m-confirm .btn { min-height: 44px; padding: .3rem 1rem; }
+.m-row.editing { background: var(--accent-soft); gap: .8rem; }
+.link-main { flex: 1 1 14rem; min-width: 0; }
+.link-label { font-size: .85rem; font-weight: 700; color: var(--muted); }
+.inline-add { display: flex; gap: .5rem; width: 100%; }
+.inline-add .input { flex: 1; min-width: 0; }
+.inline-add .btn { flex: none; }
+.status { display: inline-block; padding: 0 .55rem; border-radius: 999px; font-size: .82rem; font-weight: 700; line-height: 1.6; }
+.status.waiting { background: var(--praise-soft); color: var(--praise); }
+.status.added { background: var(--accent-soft); color: var(--accent); }
+.status.needs { background: var(--bg); color: var(--danger); border: 1px solid var(--danger); }
+.paste-box { min-height: 12rem; }
+@media (max-width: 599px) {
+  .m-row .m-line { flex-wrap: wrap; }
+  .m-row .m-actions { width: 100%; padding-left: calc(2.3rem + .75rem); margin-top: -.2rem; gap: .5rem; }
+  .m-row .m-line:has(.member) .m-actions { width: auto; padding-left: 0; margin-top: 0; }
+  .m-row .icon-btn { background: var(--bg); }
+}
 </style>
 </head>
 <body>
@@ -786,7 +829,7 @@ function startApp(DATA) {
   ];
   var ICON_GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   if (DATA.role === "manager") TABS.push({ key: "manage", label: "Manage", icon: ICON_GEAR, count: 0 });
-  var LIST_NAMES = { today: "New prayer requests", everyone: "Members", praise: "Praise", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage" };
+  var LIST_NAMES = { today: "New prayer requests", everyone: "Members", praise: "Praise", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Add from chat" };
 
   // Always-visible navigation: a bar along the bottom on phones, a sidebar on big screens.
   var tabbar = h("nav", { class: "tabbar", "aria-label": "Main" },
@@ -1426,41 +1469,65 @@ function startApp(DATA) {
   }
 
   // ---------- manager area: only with the manager link ----------
-  function managePage() {
+  var ICON_EDIT = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>';
+  var ICON_EYE = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var ICON_EYE_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6A17.4 17.4 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
+  var ICON_TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>';
+  var ICON_RESTORE = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>';
+  function iconBtn(icon, label, onclick, extra) {
+    return h("button", { type: "button", class: "icon-btn" + (extra ? " " + extra : ""), "aria-label": label, title: label, onclick: onclick, html: icon });
+  }
+  function shortText(t) { return t.length > 40 ? t.slice(0, 38) + "…" : t; }
+  var DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  // The routine runs at 12:23 pm Eastern on Mondays, Wednesdays and Fridays.
+  function nextSortTime(iso) {
+    var parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hour12: false })
+      .formatToParts(iso ? new Date(iso) : new Date());
+    var get = function (t) { return parts.filter(function (p) { return p.type === t; })[0].value; };
+    var day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday"));
+    var mins = (Number(get("hour")) % 24) * 60 + Number(get("minute"));
+    for (var k = 0; k < 8; k++) {
+      var d = (day + k) % 7;
+      if ((d === 1 || d === 3 || d === 5) && (k > 0 || mins < 12 * 60 + 23)) return "around 12:30 pm Eastern on " + DAY_NAMES[d];
+    }
+    return "after the next study";
+  }
+  function managePage(page) {
     if (DATA.role !== "manager") return todayPage();
-    var all = (DATA.all || []).slice().sort(function (a, b) { return (b.answered || b.added).localeCompare(a.answered || a.added); });
-    var live = all.filter(function (it) { return !it.archived; });
-    var removed = all.filter(function (it) { return it.archived; });
-    var link = location.origin + "/" + encodeURIComponent(DATA.memberPath || "");
-    var newName = h("input", { id: "m-new", class: "input", type: "text", maxlength: "60", autocomplete: "off", "aria-describedby": "m-new-help m-new-err" });
-    var newErr = h("p", { class: "error", id: "m-new-err", hidden: true, text: "Please type a name." });
+    var section = page === "manage-members" ? "members" : page === "manage-chat" ? "chat" : "requests";
+    var all = DATA.all || [];
+    var waiting = (DATA.inbox || []).filter(function (c) { return c.status === "Waiting"; }).length;
+    var sections = [
+      ["requests", "#manage", "Requests", all.filter(function (it) { return !it.archived; }).length],
+      ["members", "#manage-members", "Members", (DATA.memberRows || []).length],
+      ["chat", "#manage-chat", "From chat", waiting]];
+    var seg = h("nav", { class: "seg", "aria-label": "Manage sections" }, sections.map(function (x) {
+      return h("a", { class: "seg-btn", href: x[1], "aria-current": section === x[0] ? "page" : null },
+        h("span", { text: x[2] }), x[3] ? h("span", { class: "seg-count", text: String(x[3]) }) : null);
+    }));
     return [
       header("Manage", "Only Lisa and Rebecca can see this page.", "none"),
-      h("section", { class: "top", "aria-labelledby": "m-link" },
-        h("div", null, h("h2", { class: "section-title", id: "m-link", text: "The group link" }),
-          h("p", { class: "hint", text: "Send this link to members. It opens the prayer list, with no password." })),
-        h("div", { class: "link-box" }, h("p", { class: "link-text", text: link }), copyButton(link))),
-      h("section", { class: "top", "aria-labelledby": "m-req" },
-        h("div", null, h("h2", { class: "section-title", id: "m-req", text: "Prayer requests" }),
-          h("p", { class: "hint lead", text: "Fix the words or the name, hide something private, or remove it." })),
-        live.length ? h("ul", { class: "manage-list" }, live.map(manageRow)) : h("p", { class: "empty-note", text: "No prayer requests yet." })),
-      removed.length ? h("section", { class: "top", "aria-labelledby": "m-removed" },
-        h("div", null, h("h2", { class: "section-title", id: "m-removed", text: "Removed (" + removed.length + ")" }),
-          h("p", { class: "hint", text: "These are off the list. Tap Restore to bring one back." })),
-        h("ul", { class: "manage-list" }, removed.map(manageRow))) : null,
-      h("section", { class: "top", "aria-labelledby": "m-members" },
-        h("div", null, h("h2", { class: "section-title", id: "m-members", text: "Members (" + (DATA.memberRows || []).length + ")" }),
-          h("p", { class: "hint", text: "Names are shown as first name and last initial." })),
-        h("form", { class: "member-add", novalidate: true, onsubmit: function (e) {
-            e.preventDefault();
-            var n = newName.value.trim().replace(/\s+/g, " ");
-            newErr.hidden = !!n;
-            if (!n) { newName.setAttribute("aria-invalid", "true"); newName.focus(); return; }
-            manage({ action: "member-add", name: n }, n + " was added.");
-          } },
-          h("div", { class: "field" }, fieldLabel("m-new", "Add a member", true), helpText("m-new-help", "First name and last initial, like: Grace O."), newName, newErr),
-          h("button", { type: "submit", class: "btn primary" }, "Add member")),
-        h("ul", { class: "manage-list members" }, (DATA.memberRows || []).map(memberRow)))];
+      seg,
+      section === "members" ? manageMembers() : section === "chat" ? manageChat() : manageRequests()];
+  }
+
+  function manageRequests() {
+    var all = (DATA.all || []).slice().sort(function (a, b) { return (b.answered || b.added).localeCompare(a.answered || a.added); });
+    var groups = {
+      list: all.filter(function (it) { return !it.archived && !it.hidden; }),
+      hidden: all.filter(function (it) { return !it.archived && it.hidden; }),
+      removed: all.filter(function (it) { return it.archived; }),
+    };
+    var f = ui.mFilter || "list";
+    var chips = [["list", "On the list"], ["hidden", "Hidden"], ["removed", "Removed"]];
+    var rows = groups[f];
+    return h("section", { class: "top", "aria-label": "Prayer requests" },
+      h("div", { class: "chips", role: "group", "aria-label": "Show" }, chips.map(function (c) {
+        return h("button", { type: "button", class: "chip", "aria-pressed": String(f === c[0]),
+          onclick: function () { ui.mFilter = c[0]; ui.mEdit = null; ui.mConfirm = null; route(true); } }, c[1] + " (" + groups[c[0]].length + ")");
+      })),
+      rows.length ? h("ul", { class: "manage-list" }, rows.map(manageRow))
+        : h("p", { class: "empty-note", text: f === "list" ? "No prayer requests on the list." : f === "hidden" ? "Nothing is hidden." : "Nothing has been removed." }));
   }
   function manageRow(it) {
     if (ui.mEdit === it.id) {
@@ -1470,41 +1537,113 @@ function startApp(DATA) {
       sel.value = it.name;
       var ta = h("textarea", { id: "me-text", class: "input", rows: "3", maxlength: "300" });
       ta.value = it.text;
-      return h("li", { class: "manage-row editing" },
+      return h("li", { class: "m-row editing" },
         h("div", { class: "field" }, fieldLabel("me-name", "Name", true), sel),
         h("div", { class: "field" }, fieldLabel("me-text", it.kind === "praise" ? "Praise report" : "Prayer request", true), ta),
         h("div", { class: "manage-actions" },
           h("button", { type: "button", class: "btn primary", onclick: function () {
             if (!ta.value.trim()) { ta.setAttribute("aria-invalid", "true"); ta.focus(); return; }
             manage({ action: "edit", id: it.id, name: sel.value, text: ta.value.trim() }, "Saved.");
-          } }, "Save"),
+          } }, "Save changes"),
           h("button", { type: "button", class: "btn", onclick: function () { ui.mEdit = null; route(true); } }, "Cancel")));
     }
-    var chips = [h("span", { class: "tag", text: it.kind === "praise" ? "Praise" : it.answered ? "Answered" : "Praying" })];
-    if (it.hidden && !it.archived) chips.push(h("span", { class: "tag off", text: "Hidden" }));
-    return h("li", { class: "manage-row" + (it.hidden || it.archived ? " dim" : "") },
-      h("p", { class: "req-name", text: it.name }),
-      h("p", { class: "req-text", text: it.text }),
-      h("div", { class: "meta" }, chips, h("span", { text: (it.kind === "praise" ? "Shared " : "Asked ") + fmt(it.added) })),
-      h("div", { class: "manage-actions" }, it.archived
-        ? h("button", { type: "button", class: "btn", title: "Put it back on the list", onclick: function () { manage({ action: "restore", id: it.id }, "Restored."); } }, "Restore")
-        : [h("button", { type: "button", class: "btn", title: "Fix the words or the name", onclick: function () { ui.mEdit = it.id; route(true); } }, "Edit"),
-           h("button", { type: "button", class: "btn", title: it.hidden ? "Show it on the list again" : "Keep it off the list for now",
-             onclick: function () { manage({ action: it.hidden ? "show" : "hide", id: it.id }, it.hidden ? "It shows on the list again." : "Hidden from the list."); } }, it.hidden ? "Show" : "Hide"),
-           h("button", { type: "button", class: "btn", title: "Take it off the list. You can restore it later.",
-             onclick: function () { manage({ action: "archive", id: it.id }, "Removed. You can restore it from the Removed list."); } }, "Remove")]));
+    var who = it.name, what = "“" + shortText(it.text) + "”";
+    var actions = it.archived
+      ? [iconBtn(ICON_RESTORE, "Restore " + what + " from " + who, function () { manage({ action: "restore", id: it.id }, "Restored to the list."); })]
+      : [iconBtn(ICON_EDIT, "Edit " + what + " from " + who, function () { ui.mEdit = it.id; ui.mConfirm = null; route(true); }),
+         iconBtn(it.hidden ? ICON_EYE : ICON_EYE_OFF, (it.hidden ? "Show " : "Hide ") + what + " from " + who, function () {
+           manage({ action: it.hidden ? "show" : "hide", id: it.id }, it.hidden ? "It shows on the list again." : "Hidden. Find it under Hidden.");
+         }),
+         iconBtn(ICON_TRASH, "Remove " + what + " from " + who, function () { ui.mConfirm = it.id; route(true); }, "danger")];
+    return h("li", { class: "m-row" },
+      h("div", { class: "m-line" },
+        h("span", { class: "avatar m-av", "aria-hidden": "true", text: initials(it.name) }),
+        h("div", { class: "m-main" },
+          h("p", { class: "m-name" }, it.name, h("span", { class: "m-date", text: " · " + fmt(it.answered || it.added) })),
+          h("p", { class: "m-text", text: it.text }),
+          it.kind === "praise" || it.answered ? h("span", { class: "tag", text: it.kind === "praise" ? "Praise" : "Answered" }) : null),
+        h("div", { class: "m-actions" }, actions)),
+      ui.mConfirm === it.id ? h("div", { class: "m-confirm", role: "group", "aria-label": "Confirm removing" },
+        h("span", { text: "Remove this request? You can restore it later." }),
+        h("button", { type: "button", class: "btn primary", onclick: function () { ui.mConfirm = null; manage({ action: "archive", id: it.id }, "Removed. Find it under Removed."); } }, "Remove"),
+        h("button", { type: "button", class: "btn", onclick: function () { ui.mConfirm = null; route(true); } }, "Cancel")) : null);
   }
-  function memberRow(m) {
-    var asking = ui.mRemove === m.id;
-    return h("li", { class: "member-row" },
-      h("span", { class: "avatar", "aria-hidden": "true", text: initials(m.name) }),
-      h("span", { class: "member-name", text: m.name }),
-      asking
-        ? h("span", { class: "manage-actions" }, h("span", { class: "confirm-q", text: "Remove " + m.name + "?" }),
-            h("button", { type: "button", class: "btn primary", onclick: function () { ui.mRemove = null; manage({ action: "member-remove", id: m.id }, m.name + " was removed."); } }, "Yes, remove"),
-            h("button", { type: "button", class: "btn", onclick: function () { ui.mRemove = null; route(true); } }, "No"))
-        : h("button", { type: "button", class: "btn", title: "Remove " + m.name + " from the member list", onclick: function () { ui.mRemove = m.id; route(true); } }, "Remove"));
+
+  function manageMembers() {
+    var link = location.origin + "/" + encodeURIComponent(DATA.memberPath || "");
+    var input = h("input", { id: "m-new", class: "input", type: "text", maxlength: "60", autocomplete: "off", placeholder: "For example: Grace O.", "aria-describedby": "m-new-help m-new-err" });
+    var err = h("p", { class: "error", id: "m-new-err", hidden: true, text: "Please type a name." });
+    return h("section", { class: "top", "aria-label": "Members" },
+      h("div", { class: "link-box" },
+        h("div", { class: "link-main" }, h("p", { class: "link-label", text: "Group link" }), h("p", { class: "link-text", text: link })),
+        copyButton(link)),
+      h("form", { class: "member-add", novalidate: true, onsubmit: function (e) {
+          e.preventDefault();
+          var n = input.value.trim().replace(/\s+/g, " ");
+          err.hidden = !!n;
+          if (!n) { input.setAttribute("aria-invalid", "true"); input.focus(); return; }
+          manage({ action: "member-add", name: n }, n + " was added.");
+        } },
+        fieldLabel("m-new", "Add a member", true),
+        helpText("m-new-help", "First name and last initial."),
+        h("div", { class: "inline-add" }, input, h("button", { type: "submit", class: "btn primary" }, "Add")),
+        err),
+      h("ul", { class: "manage-list" }, (DATA.memberRows || []).map(function (m) {
+        return h("li", { class: "m-row" },
+          h("div", { class: "m-line" },
+            h("span", { class: "avatar m-av", "aria-hidden": "true", text: initials(m.name) }),
+            h("p", { class: "m-name member", text: m.name }),
+            h("div", { class: "m-actions" }, iconBtn(ICON_TRASH, "Remove " + m.name + " from the member list", function () { ui.mConfirm = m.id; route(true); }, "danger"))),
+          ui.mConfirm === m.id ? h("div", { class: "m-confirm", role: "group", "aria-label": "Confirm removing" },
+            h("span", { text: "Remove " + m.name + " from the member list?" }),
+            h("button", { type: "button", class: "btn primary", onclick: function () { ui.mConfirm = null; manage({ action: "member-remove", id: m.id }, m.name + " was removed."); } }, "Remove"),
+            h("button", { type: "button", class: "btn", onclick: function () { ui.mConfirm = null; route(true); } }, "Cancel")) : null);
+      })));
   }
+
+  function manageChat() {
+    var box = h("textarea", { id: "mc-text", class: "input paste-box", rows: "10", "aria-required": "true", "aria-describedby": "mc-help mc-err",
+      placeholder: "Paste the prayer requests from the Zoom chat here." });
+    var saved = draft("mchat");
+    box.value = saved;
+    box.addEventListener("input", function () { draft("mchat", box.value); });
+    var err = h("p", { class: "error", id: "mc-err", hidden: true, text: "Please paste the chat first." });
+    var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Send the chat to be sorted onto the list" }, "Send to be sorted");
+    var form = h("form", { class: "form", novalidate: true },
+      h("div", { class: "field" }, fieldLabel("mc-text", "Zoom chat", true),
+        helpText("mc-help", "Paste it exactly as it is. Messy is fine. Each request is sorted under the right name and added to the list " + nextSortTime() + "."),
+        saved ? h("p", { class: "restored", text: "We kept what you pasted last time." }) : null, box, err),
+      submit);
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var chat = box.value.trim();
+      err.hidden = !!chat;
+      if (!chat) { box.setAttribute("aria-invalid", "true"); box.focus(); return; }
+      submit.disabled = true; submit.textContent = "Sending…";
+      api("manage", { action: "paste", chat: chat }).then(function () {
+        draft("mchat", "");
+        return reload();
+      }).then(function () { notify("Sent. It will be added to the list " + nextSortTime() + ".", "ok"); }, function () {
+        submit.disabled = false; submit.textContent = "Send to be sorted";
+        notify("We could not send it just now. Your paste is saved. Please try again in a minute.");
+      });
+    });
+    var inbox = DATA.inbox;
+    var STATUS = { "Waiting": "waiting", "Added": "added", "Needs a look": "needs" };
+    return h("section", { class: "top", "aria-label": "Add from chat" }, form,
+      h("h2", { class: "section-title", text: "Recent chats" }),
+      inbox === null ? h("p", { class: "empty-note", text: "The Chat Inbox is not connected yet. In Notion, connect the “Group 3 Chat Inbox” list to the prayer app." })
+        : !inbox || !inbox.length ? h("p", { class: "empty-note", text: "Chats you send will show here, with what happened to them." })
+        : h("ul", { class: "manage-list" }, inbox.map(function (c) {
+            return h("li", { class: "m-row chat-row" },
+              h("p", { class: "m-name" }, h("span", { class: "status " + (STATUS[c.status] || "waiting"), text: c.status }),
+                h("span", { class: "m-date", text: " Sent " + new Date(c.pastedAt).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) })),
+              h("p", { class: "m-text quiet", text: c.preview + (c.preview.length >= 140 ? "…" : "") }),
+              c.status === "Waiting" ? h("p", { class: "hint", text: "Will be added " + nextSortTime(c.pastedAt) + "." }) : null,
+              c.note ? h("p", { class: "m-note", text: c.note }) : null);
+          })));
+  }
+
   function copyButton(textToCopy) {
     return h("button", { type: "button", class: "btn", title: "Copy the link to send it", onclick: function () {
       var done = function () { notify("Link copied. You can paste it into WhatsApp or an email.", "ok"); };
@@ -1520,7 +1659,9 @@ function startApp(DATA) {
     notify("The link is selected. Copy it from your phone's menu.", "ok");
   }
   function manage(body, doneMsg) {
-    return api("manage", body).then(function () { ui.mEdit = null; return reload(); }).then(function () { notify(doneMsg, "ok"); }, function () {});
+    return api("manage", body).then(function () { ui.mEdit = null; return reload(); }).then(function () { notify(doneMsg, "ok"); }, function () {
+      notify("That did not save. Please check your internet connection and try again.");
+    });
   }
 
   // ---------- routing: #today, #everyone, #praise, or #p-name for one person ----------
@@ -1530,9 +1671,9 @@ function startApp(DATA) {
     else {
       var month = /^praise-(\d{4}-\d{2})$/.exec(key);
       page = month ? key : LIST_NAMES[key] ? key : "today";
-      kids = month ? praiseMonthPage(month[1]) : page === "everyone" ? everyonePage() : page === "praise" ? praisePage() : page === "add" ? addPage() : page === "update" ? updatePage() : page === "praise-add" ? praiseAddPage() : page === "manage" ? managePage() : todayPage();
+      kids = month ? praiseMonthPage(month[1]) : page === "everyone" ? everyonePage() : page === "praise" ? praisePage() : page === "add" ? addPage() : page === "update" ? updatePage() : page === "praise-add" ? praiseAddPage() : /^manage/.test(page) ? managePage(page) : todayPage();
       if (ui.lastList !== page && !keepScroll) ui.lastSlug = ui.lastList === undefined ? null : ui.lastSlug;
-      nav = page === "praise-add" || month ? "praise" : page === "add" || page === "update" ? (ui.lastList || "today") : page;
+      nav = /^manage/.test(page) ? "manage" : page === "praise-add" || month ? "praise" : page === "add" || page === "update" ? (ui.lastList || "today") : page;
     }
     app.replaceChildren();
     add(app, kids);
