@@ -16,6 +16,14 @@ The list is stored in Notion. The site runs on Netlify's free plan.
 - The data endpoints (`/api/*`) answer only when the request carries the member or manager link.
 - Data lives in three Notion databases: **Group 3 Prayer Requests**, **Group 3 Members** and **Group 3 Chat Inbox**.
 
+## Page addresses
+Each screen has its own clean address under the link, for example (with `MEMBER_PATH=praying-together`):
+`/praying-together` (New), `/praying-together/members`, `/praying-together/members/carmen-m`,
+`/praying-together/praise-reports`, `/praying-together/praise-reports/2026-10`, `/praying-together/add-prayer`,
+`/praying-together/share-praise`, `/praying-together/answered-prayer`, and for managers
+`/<MANAGER_PATH>/manage/prayer-requests`, `/manage/members`, `/manage/zoom-chat`.
+Older links with `#` still work and switch to the clean address.
+
 ## Manage page (manager link only)
 - **Requests** — filter by On the list / Hidden / Removed; edit, hide/show, remove (with confirm) and restore.
 - **Members** — copy the group link, add a member, remove a member (with confirm).

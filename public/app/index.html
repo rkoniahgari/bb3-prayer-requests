@@ -757,6 +757,10 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
   .launch img, .launch-name, .launch-sub { animation: none; }
   .launch-line span { animation: none; left: 30%; }
 }
+/* tab labels wrap onto two lines rather than being cut off */
+@media (max-width: 899px) {
+  .tab-label { white-space: normal; overflow: visible; text-overflow: clip; text-align: center; line-height: 1.12; }
+}
 </style>
 </head>
 <body>
@@ -888,11 +892,11 @@ function startApp(DATA) {
   var TABS = [
     { key: "today", label: "New", icon: ICON_TODAY, count: today.length, countLabel: " new" },
     { key: "everyone", label: "Members", icon: ICON_PEOPLE, count: 0 },
-    { key: "praise", label: "Praise", icon: STAR, count: 0 },
+    { key: "praise", label: "Praise Reports", icon: STAR, count: 0 },
   ];
   var ICON_GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   if (DATA.role === "manager") TABS.push({ key: "manage", label: "Manage", icon: ICON_GEAR, count: 0 });
-  var LIST_NAMES = { today: "New prayer requests", everyone: "Members", praise: "Praise", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Add from chat" };
+  var LIST_NAMES = { today: "New prayer requests", everyone: "Members", praise: "Praise reports", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Add from chat" };
 
   // Always-visible navigation: a bar along the bottom on phones, a sidebar on big screens.
   var tabbar = h("nav", { class: "tabbar", "aria-label": "Main" },
@@ -1214,7 +1218,7 @@ function startApp(DATA) {
           draft(isPraise && item.source === "web" && ui.lastList === "praise" ? "praise" : "add", item.text);
           ui.added = null; ui.addFor = item.name; ui.addKind = item.kind;
           var target = isPraise && ui.lastList === "praise" ? "praise-add" : "add";
-          if (location.hash === "#" + target) route("focus"); else location.hash = target;
+          navigate(target);
         } }, "Undo, I want to change it"))];
   }
 
@@ -1232,7 +1236,7 @@ function startApp(DATA) {
     return api("data").then(function (d) {
       writeCache(d);
       DATA = d; prepare(); shape(); updateBadge();
-      if (!/^#(add|update|praise-add|paste)$/.test(location.hash)) route(true);
+      if (!/^(add|update|praise-add|paste)$/.test(currentKey())) route(true);
     });
   }
   var loadedAt = Date.now();
@@ -1358,7 +1362,7 @@ function startApp(DATA) {
             return saveUpdate(it, b);
           })).then(function () {
             shape(); updateBadge(); ui.updated = null;
-            location.hash = people[back.name] ? people[back.name].slug : "everyone";
+            navigate(people[back.name] ? people[back.name].slug : "everyone");
           });
         } }, "Undo, I tapped this by mistake"))];
   }
@@ -1729,9 +1733,58 @@ function startApp(DATA) {
     });
   }
 
+  // ---------- clean addresses: /praying-together/members instead of #everyone ----------
+  // Screens keep their short internal names; these two functions translate to and from the address.
+  var BASE = "/" + encodeURIComponent(GROUP_KEY);
+  var KEY_TO_PATH = { today: "", everyone: "members", praise: "praise-reports", add: "add-prayer", update: "answered-prayer",
+    "praise-add": "share-praise", manage: "manage/prayer-requests", "manage-members": "manage/members", "manage-chat": "manage/zoom-chat" };
+  function pathFor(key) {
+    var m;
+    if (KEY_TO_PATH[key] !== undefined) return BASE + (KEY_TO_PATH[key] ? "/" + KEY_TO_PATH[key] : "");
+    if ((m = /^p-(.+)$/.exec(key))) return BASE + "/members/" + m[1];
+    if ((m = /^praise-(\d{4}-\d{2})$/.exec(key))) return BASE + "/praise-reports/" + m[1];
+    return BASE;
+  }
+  function isRouteKey(key) { return KEY_TO_PATH[key] !== undefined || /^p-./.test(key) || /^praise-\d{4}-\d{2}$/.test(key); }
+  function currentKey() {
+    var rest = location.pathname.split("/").slice(2).filter(Boolean).map(decodeURIComponent);
+    var a = rest[0] || "", b = rest[1] || "";
+    if (!a || a === "new") return "today";
+    if (a === "members") return b ? "p-" + b : "everyone";
+    if (a === "praise-reports") return /^\d{4}-\d{2}$/.test(b) ? "praise-" + b : "praise";
+    if (a === "manage") return b === "members" ? "manage-members" : b === "zoom-chat" ? "manage-chat" : "manage";
+    for (var k in KEY_TO_PATH) if (KEY_TO_PATH[k] === a) return k;
+    return "today";
+  }
+  function navigate(key, replace) {
+    var url = pathFor(key);
+    if (url !== location.pathname) history[replace ? "replaceState" : "pushState"]({}, "", url);
+    route("focus");
+  }
+  // Links are written as "#key" in the code; give them real addresses so they look right and open correctly in a new tab.
+  function linkify() {
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      var key = a.getAttribute("href").slice(1);
+      if (key === "" ) key = "today";
+      if (!isRouteKey(key)) return;
+      a.setAttribute("data-key", key);
+      a.setAttribute("href", pathFor(key));
+    });
+  }
+  document.addEventListener("click", function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest("a[data-key]");
+    if (!a) return;
+    e.preventDefault();
+    navigate(a.getAttribute("data-key"));
+  });
+  window.addEventListener("popstate", function () { route("focus"); });
+  // Old links with a "#" still work: switch them to the clean address.
+  if (location.hash.length > 1 && isRouteKey(location.hash.slice(1))) history.replaceState({}, "", pathFor(location.hash.slice(1)));
+
   // ---------- routing: #today, #everyone, #praise, or #p-name for one person ----------
   function route(keepScroll) {
-    var key = location.hash.slice(1), y = window.scrollY, kids, page, nav;
+    var key = currentKey(), y = window.scrollY, kids, page, nav;
     if (bySlug[key]) { kids = personPage(bySlug[key]); page = key; nav = ui.lastList || "everyone"; ui.lastSlug = key; }
     else {
       var month = /^praise-(\d{4}-\d{2})$/.exec(key);
@@ -1744,6 +1797,7 @@ function startApp(DATA) {
     add(app, kids);
     setNav(nav);
     addTips();
+    linkify();
     document.title = (bySlug[page] ? bySlug[page].name : /^praise-\d{4}-\d{2}$/.test(page) ? monthLabel(page.slice(7)) + " praise" : LIST_NAMES[page]) + " \u00B7 Group 3 Prayer Requests";
     if (keepScroll === true) { window.scrollTo(0, y); return; }
     if (!bySlug[page] && ui.lastSlug && ui.lastList === page) {
@@ -1754,13 +1808,12 @@ function startApp(DATA) {
     window.scrollTo(0, 0);
     if (keepScroll === "focus") { var t = document.getElementById("page-title"); if (t) t.focus({ preventScroll: true }); }
   }
-  window.addEventListener("hashchange", function () { route("focus"); });
   route();
   return {
     // A fresh copy arrived from Notion: redraw, unless someone is in the middle of typing.
     refresh: function (d) {
       DATA = d; prepare(); shape(); updateBadge();
-      if (!/^#(add|update|praise-add|paste|manage-chat)$/.test(location.hash) && !ui.mEdit) route(true);
+      if (!/^(add|update|praise-add|paste|manage-chat)$/.test(currentKey()) && !ui.mEdit) route(true);
     },
   };
 }
