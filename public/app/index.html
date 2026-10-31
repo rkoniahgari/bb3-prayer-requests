@@ -626,11 +626,11 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
   .tabbar-link:focus-visible { outline-color: var(--sun); }
 }
 .empty-note { background: var(--surface); border: 1px dashed var(--edge); border-radius: 16px; padding: 1.1rem; color: var(--muted); text-align: center; }
-.privacy-note { display: flex; gap: .85rem; align-items: flex-start; background: var(--surface); border: 1px solid var(--edge); border-radius: 16px; padding: .9rem 1rem; }
-.privacy-icon { flex: none; width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
-.privacy-icon svg { width: 1.2rem; height: 1.2rem; }
-.privacy-note p { font-size: .98rem; line-height: 1.5; color: var(--ink); }
-.privacy-note .privacy-title { font-weight: 700; font-size: 1.05rem; margin-bottom: .15rem; }
+.privacy-note { display: flex; flex-direction: column; gap: .2rem; background: var(--praise-soft); border-left: 5px solid var(--new-line); border-radius: 10px; padding: .75rem 1rem .8rem; }
+.privacy-note p { font-size: .98rem; line-height: 1.45; color: var(--ink); }
+.privacy-note .privacy-title { display: flex; align-items: center; gap: .45rem; font-weight: 700; font-size: 1.05rem; margin-bottom: .1rem; }
+.privacy-icon { display: inline-grid; place-items: center; color: var(--praise); }
+.privacy-icon svg { width: 1.15rem; height: 1.15rem; }
 /* ---- the live app: loading, messages and the manager page ---- */
 .loading { padding: 3rem 0; text-align: center; color: var(--muted); font-size: 1.1rem; }
 @media (max-width: 899px) { .tabbar ul { grid-template-columns: repeat(var(--tabs, 3), 1fr); } }
@@ -1156,11 +1156,10 @@ function startApp(DATA) {
   var LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   // A calm reminder to keep personal details out of what is shared with the group.
   function privacyNote() {
-    return h("aside", { class: "privacy-note", "aria-labelledby": "privacy-title" },
-      h("span", { class: "privacy-icon", html: LOCK }),
-      h("div", null,
-        h("p", { class: "privacy-title", id: "privacy-title", text: "Before you share" }),
-        h("p", { text: "Please use first names only, and leave out private details such as medical information, addresses or phone numbers. For something personal, you can simply write \u201CUnspoken request.\u201D" })));
+    return h("aside", { class: "privacy-note", role: "note", "aria-labelledby": "privacy-title" },
+      h("p", { class: "privacy-title", id: "privacy-title" }, h("span", { class: "privacy-icon", html: LOCK }), "Keep it private"),
+      h("p", { text: "First names only. Leave out medical details, addresses and phone numbers." }),
+      h("p", { text: "For anything personal, just write \u201CUnspoken request.\u201D" }));
   }
   function addPage() {
     if (ui.added) return thanksView(ui.added);
