@@ -1,16 +1,19 @@
 // Manager-only actions: fix or hide requests, and keep the member list up to date.
-import { MEMBERS_DB, INBOX_DB, isId, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem, safe, logChange, tooFast, describe, plain } from "../lib/notion.mjs";
+import { MEMBERS_DB, INBOX_DB, isId, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem, safe, logChange, tooFast, describe, plain, later } from "../lib/notion.mjs";
 
 const bare = (id) => String(id || "").replace(/-/g, "");
 
-export default safe(async (request) => {
+export default safe(async (request, context) => {
   if (request.method !== "POST") return json({ error: "Use POST." }, 405);
   if (role(request) !== "manager") return denied();
   const body = await readBody(request);
   const action = body.action;
   const NAMES = { paste: "Chat pasted", "member-add": "Member added", "member-remove": "Member removed", edit: "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored" };
   if (!NAMES[action]) return json({ error: "Unknown action." }, 400);
-  const slow = await tooFast("manager", ["member-remove", "edit", "hide", "archive"].includes(action) ? "remove" : "add");
+  // Start the speed check now; request changes look up the row at the same time.
+  const slowCheck = tooFast("manager", ["member-remove", "edit", "hide", "archive"].includes(action) ? "remove" : "add");
+  if (!["paste", "member-add", "member-remove"].includes(action)) return changeRequest(action, body, context, slowCheck);
+  const slow = await slowCheck;
   if (slow) return slow;
 
   if (action === "paste") {
@@ -27,7 +30,7 @@ export default safe(async (request) => {
         "Pasted at": { date: { start: now } },
       },
     });
-    await logChange("manager", "Chat pasted", { summary: "Zoom chat pasted (see Group 3 Chat Inbox)", id: row.id });
+    later(context, logChange("manager", "Chat pasted", { summary: "Zoom chat pasted (see Group 3 Chat Inbox)", id: row.id }));
     return json({ id: row.id, status: "Waiting", pastedAt: now });
   }
 
@@ -38,7 +41,7 @@ export default safe(async (request) => {
       parent: { database_id: MEMBERS_DB },
       properties: { Name: { title: text(name) }, Active: { checkbox: true } },
     });
-    await logChange("manager", "Member added", { summary: `Added member ${name}`, person: name, id: row.id });
+    later(context, logChange("manager", "Member added", { summary: `Added member ${name}`, person: name, id: row.id }));
     return json({ id: row.id, name });
   }
 
@@ -48,11 +51,17 @@ export default safe(async (request) => {
     if (!page.parent || bare(page.parent.database_id) !== bare(MEMBERS_DB)) return json({ error: "Member not found." }, 404);
     await notion(`/pages/${page.id}`, "PATCH", { properties: { Active: { checkbox: false } } });
     const name = plain(page.properties && page.properties.Name);
-    await logChange("manager", "Member removed", { summary: `Removed member ${name} (tick Active in Group 3 Members to bring back)`, person: name, id: page.id });
+    later(context, logChange("manager", "Member removed", { summary: `Removed member ${name} (tick Active in Group 3 Members to bring back)`, person: name, id: page.id }));
     return json({ ok: true });
   }
 
-  const row = await requestRow(body.id);
+  return json({ error: "Unknown action." }, 400);
+});
+
+async function changeRequest(action, body, context, slowCheck) {
+  const NAMES = { edit: "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored" };
+  const [row, slow] = await Promise.all([requestRow(body.id), slowCheck]);
+  if (slow) return slow;
   if (!row) return json({ error: "That prayer request was not found." }, 404);
   let properties;
   if (action === "edit") {
@@ -72,8 +81,8 @@ export default safe(async (request) => {
   }
   const updated = await notion(`/pages/${row.id}`, "PATCH", { properties });
   const person = plain(row.properties.Person);
-  await logChange("manager", NAMES[action], { summary: `${NAMES[action]}: ${person}'s request`, person, before: describe(row), after: describe(updated), id: row.id });
+  later(context, logChange("manager", NAMES[action], { summary: `${NAMES[action]}: ${person}'s request`, person, before: describe(row), after: describe(updated), id: row.id }));
   return json(toItem(updated));
-});
+}
 
 export const config = { path: "/api/manage" };

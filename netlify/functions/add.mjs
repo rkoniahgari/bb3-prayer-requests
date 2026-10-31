@@ -1,7 +1,7 @@
 // A member adds a prayer request or a praise report.
-import { REQUESTS_DB, notion, role, json, denied, readBody, clean, text, todayET, toItem, safe, logChange, tooFast, describe } from "../lib/notion.mjs";
+import { REQUESTS_DB, notion, role, json, denied, readBody, clean, text, todayET, toItem, safe, logChange, tooFast, describe, later } from "../lib/notion.mjs";
 
-export default safe(async (request) => {
+export default safe(async (request, context) => {
   if (request.method !== "POST") return json({ error: "Use POST." }, 405);
   const who = role(request);
   if (!who) return denied();
@@ -10,8 +10,8 @@ export default safe(async (request) => {
   const words = clean(body.text, 300);
   const kind = body.kind === "praise" ? "praise" : "request";
   if (!name || !words) return json({ error: "A name and a few words are needed." }, 400);
-  const slow = await tooFast(who, "add");
-  if (slow) return slow;
+  // Save and check the speed limit at the same time, so sharing feels quick.
+  const slowCheck = tooFast(who, "add");
   const row = await notion("/pages", "POST", {
     parent: { database_id: REQUESTS_DB },
     properties: {
@@ -24,7 +24,13 @@ export default safe(async (request) => {
       Source: { rich_text: text(`Website (${who === "manager" ? "manager" : "member"})`) },
     },
   });
-  await logChange(who, "Added", { summary: `${name} added a ${kind === "praise" ? "praise report" : "prayer request"}`, person: name, after: describe(row), id: row.id });
+  const slow = await slowCheck;
+  if (slow) {
+    // Over the limit: take the new entry straight back off the list.
+    await notion(`/pages/${row.id}`, "PATCH", { properties: { Status: { select: { name: "Archived" } } } });
+    return slow;
+  }
+  later(context, logChange(who, "Added", { summary: `${name} added a ${kind === "praise" ? "praise report" : "prayer request"}`, person: name, after: describe(row), id: row.id }));
   return json(toItem(row));
 });
 

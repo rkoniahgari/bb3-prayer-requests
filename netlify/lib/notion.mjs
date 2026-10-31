@@ -130,8 +130,20 @@ export function describe(row) {
   return `${plain(p.Person)}: ${plain(p.Request)} [${status}${shown}]`;
 }
 
+// If the log can't be reached (for example, not yet connected in Notion), stop trying for 10 minutes
+// so saving stays fast.
+let logDownUntil = 0;
+const logDown = (err) => { logDownUntil = Date.now() + 10 * 60 * 1000; console.error("Activity log unreachable:", err.message); };
+
+// Let a slow side job (like writing the log) finish after the person already has their answer.
+export function later(context, promise) {
+  if (context && typeof context.waitUntil === "function") context.waitUntil(promise);
+  else return promise;
+}
+
 // Write one line to the Activity Log. Never stops the change itself if the log can't be reached.
 export async function logChange(who, action, { summary, person = "", before = "", after = "", id = "" } = {}) {
+  if (Date.now() < logDownUntil) return;
   try {
     await notion("/pages", "POST", {
       parent: { database_id: LOG_DB },
@@ -146,7 +158,7 @@ export async function logChange(who, action, { summary, person = "", before = ""
       },
     });
   } catch (err) {
-    console.error("Activity log not written:", err.message);
+    logDown(err);
   }
 }
 
@@ -164,13 +176,20 @@ const GROUPS = {
 export async function tooFast(who, group) {
   const limit = (LIMITS[who] || LIMITS.member)[group];
   const since = Date.now() - 60 * 60 * 1000;
+  if (Date.now() < logDownUntil) return null;
   let recent;
   try {
-    recent = await queryAll(LOG_DB, {
-      filter: { timestamp: "created_time", created_time: { on_or_after: new Date(since).toISOString() } },
-    });
+    // One small lookup: only this link's changes of this kind in the last hour, and no more than needed.
+    recent = (await notion(`/databases/${LOG_DB}/query`, "POST", {
+      page_size: limit,
+      filter: { and: [
+        { timestamp: "created_time", created_time: { on_or_after: new Date(since).toISOString() } },
+        { property: "Link used", select: { equals: LINK[who] } },
+        { or: GROUPS[group].map((a) => ({ property: "Action", select: { equals: a } })) },
+      ] },
+    })).results;
   } catch (err) {
-    console.error("Speed limit not checked (activity log unreachable):", err.message);
+    logDown(err);
     return null;
   }
   const count = recent.filter((r) => {

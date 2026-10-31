@@ -1,18 +1,18 @@
 // Mark a prayer answered, take it off the list, or undo either.
 // change: { answered: true, note, by } | { removed: true, by } | null (undo: back to the prayer list)
-import { plain, notion, role, json, denied, readBody, clean, text, todayET, requestRow, toItem, safe, logChange, tooFast, describe } from "../lib/notion.mjs";
+import { plain, notion, role, json, denied, readBody, clean, text, todayET, requestRow, toItem, safe, logChange, tooFast, describe, later } from "../lib/notion.mjs";
 
-export default safe(async (request) => {
+export default safe(async (request, context) => {
   if (request.method !== "POST") return json({ error: "Use POST." }, 405);
   const who = role(request);
   if (!who) return denied();
   const { id, change } = await readBody(request);
-  const row = await requestRow(id);
+  const action = !change ? "Undo" : change.removed ? "Removed" : "Answered";
+  // Look up the request and check the speed limit at the same time.
+  const [row, slow] = await Promise.all([requestRow(id), tooFast(who, action === "Removed" ? "remove" : "add")]);
+  if (slow) return slow;
   if (!row) return json({ error: "That prayer request was not found." }, 404);
   const isPraise = row.properties.Type && row.properties.Type.select && row.properties.Type.select.name === "Praise report";
-  const action = !change ? "Undo" : change.removed ? "Removed" : "Answered";
-  const slow = await tooFast(who, action === "Removed" ? "remove" : "add");
-  if (slow) return slow;
   let properties;
   if (!change) {
     properties = { Status: { select: { name: isPraise ? "Answered" : "Praying" } }, "Answered date": { date: null }, "How it was answered": { rich_text: [] } };
@@ -28,7 +28,7 @@ export default safe(async (request) => {
   }
   const updated = await notion(`/pages/${row.id}`, "PATCH", { properties });
   const person = plain(row.properties.Person);
-  await logChange(who, action, { summary: `${action}: ${person}'s request`, person, before: describe(row), after: describe(updated), id: row.id });
+  later(context, logChange(who, action, { summary: `${action}: ${person}'s request`, person, before: describe(row), after: describe(updated), id: row.id }));
   return json(toItem(updated));
 });
 
