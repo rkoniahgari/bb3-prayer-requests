@@ -960,7 +960,7 @@ function startApp(DATA) {
     var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Send the chat to be sorted onto the list" }, "Send to be sorted");
     var form = h("form", { class: "form", novalidate: true },
       h("div", { class: "field" }, fieldLabel("mc-text", "Zoom chat", true),
-        helpText("mc-help", "Paste it exactly as it is. Messy is fine. Each request is sorted under the right name and added to the list " + nextSortTime() + "."),
+        helpText("mc-help", "Paste the prayer requests from the Zoom chat here."),
         saved ? h("p", { class: "restored", text: "We kept what you pasted last time." }) : null, box, err),
       submit);
     form.addEventListener("submit", function (e) {
