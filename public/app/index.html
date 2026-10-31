@@ -626,10 +626,10 @@ textarea.input { min-height: 9rem; line-height: 1.5; resize: vertical; }
   .tabbar-link:focus-visible { outline-color: var(--sun); }
 }
 .empty-note { background: var(--surface); border: 1px dashed var(--edge); border-radius: 16px; padding: 1.1rem; color: var(--muted); text-align: center; }
-.privacy-note { display: flex; flex-direction: column; gap: .2rem; background: var(--praise-soft); border-left: 5px solid var(--new-line); border-radius: 10px; padding: .75rem 1rem .8rem; }
+.privacy-note { display: flex; flex-direction: column; gap: .2rem; background: var(--accent-soft); border-left: 5px solid var(--accent); border-radius: 10px; padding: .75rem 1rem .8rem; }
 .privacy-note p { font-size: .98rem; line-height: 1.45; color: var(--ink); }
 .privacy-note .privacy-title { display: flex; align-items: center; gap: .45rem; font-weight: 700; font-size: 1.05rem; margin-bottom: .1rem; }
-.privacy-icon { display: inline-grid; place-items: center; color: var(--praise); }
+.privacy-icon { display: inline-grid; place-items: center; color: var(--accent); }
 .privacy-icon svg { width: 1.15rem; height: 1.15rem; }
 /* ---- the live app: loading, messages and the manager page ---- */
 .loading { padding: 3rem 0; text-align: center; color: var(--muted); font-size: 1.1rem; }
@@ -1153,11 +1153,12 @@ function startApp(DATA) {
     shape(); updateBadge();
   }
 
+  var INFO = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><path d="M12 7.5h.01"/></svg>';
   var LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   // A calm reminder to keep personal details out of what is shared with the group.
   function privacyNote() {
     return h("aside", { class: "privacy-note", role: "note", "aria-labelledby": "privacy-title" },
-      h("p", { class: "privacy-title", id: "privacy-title" }, h("span", { class: "privacy-icon", html: LOCK }), "Keep it private"),
+      h("p", { class: "privacy-title", id: "privacy-title" }, h("span", { class: "privacy-icon", html: INFO }), "Important note"),
       h("p", { text: "First names only. Leave out medical details, addresses and phone numbers." }),
       h("p", { text: "For anything personal, just write \u201CUnspoken request.\u201D" }));
   }
