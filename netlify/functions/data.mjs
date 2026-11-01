@@ -14,7 +14,8 @@ export default safe(async (request) => {
     .map((m) => ({ id: m.id, name: plain(m.properties.Name) }))
     .filter((m) => m.name)
     .sort((a, b) => a.name.localeCompare(b.name));
-  const items = all.filter((it) => !it.hidden && !it.archived);
+  // A request waiting for "Which Carol is this?" stays off the shared list until Lisa or Rebecca picks.
+  const items = all.filter((it) => !it.hidden && !it.archived && !(it.choices && it.choices.length));
   const updated = items.reduce((m, it) => [it.added, it.answered || ""].reduce((a, b) => (b > a ? b : a), m), "");
   const out = { role: who, members: members.map((m) => m.name), items, updated: updated || null };
   if (who === "manager") {
