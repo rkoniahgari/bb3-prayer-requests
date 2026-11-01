@@ -940,7 +940,7 @@ function startApp(DATA) {
     var link = location.origin + "/" + encodeURIComponent(DATA.memberPath || "");
     var addArea;
     if (ui.mAdding) {
-      var input = h("input", { id: "m-new", class: "input", type: "text", maxlength: "60", autocomplete: "off", autocapitalize: "words", placeholder: "For example: Grace O.", "aria-describedby": "m-new-help m-new-err" });
+      var input = h("input", { id: "m-new", class: "input", type: "text", maxlength: "60", autocomplete: "off", autocapitalize: "words", placeholder: "For example: Grace", "aria-describedby": "m-new-help m-new-err" });
       input.value = ui.mAddName || "";
       var err = h("p", { class: "error", id: "m-new-err", hidden: true, text: "Please type a name." });
       addArea = h("form", { class: "member-add", novalidate: true, onsubmit: function (e) {
@@ -952,7 +952,7 @@ function startApp(DATA) {
           manage({ action: "member-add", name: n }, n + " was added.");
         } },
         fieldLabel("m-new", "New member\u2019s name", true),
-        helpText("m-new-help", "First name and last initial."),
+        helpText("m-new-help", "First name only. Add a last initial only if two people share a first name."),
         h("div", { class: "inline-add" }, input, h("button", { type: "submit", class: "btn primary" }, "Add")),
         err,
         h("button", { type: "button", class: "linklike", onclick: function () { ui.mAdding = false; ui.mAddName = ""; route(true); } }, "Cancel"));
