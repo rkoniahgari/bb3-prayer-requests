@@ -73,7 +73,8 @@ Members then need the new link (and to re-add the home-screen icon).
 ## Security
 
 - The page addresses (MEMBER_PATH, MANAGER_PATH) act as passwords. Make the manager one long and random, and never post it in the group.
-- Every page tells search engines not to list it, and refuses to load code from anywhere except this site (Content Security Policy in `netlify.toml`).
+- Every page tells search engines and AI tools not to list, quote, archive or train on it (robots.txt, `X-Robots-Tag` and meta tags), and known search, AI and link-preview crawlers are turned away at the door (`netlify/edge-functions/gate.js`), even with the right link.
+- Pages refuse to load code from anywhere except this site (Content Security Policy in `netlify.toml`).
 - The server checks the address on every request. Only the manager address can change members, hide, edit or remove requests.
 - If a link leaks: change MEMBER_PATH or MANAGER_PATH in Netlify, redeploy, and share the new link.
 - If the Notion token leaks: open notion.so/profile/integrations, refresh the secret, and paste the new one into NOTION_TOKEN in Netlify.
