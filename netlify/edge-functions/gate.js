@@ -30,7 +30,7 @@ export const config = {
 
 // Lisa's and Rebecca's link: same page, but the title and link preview say it is for managing the list.
 const MEMBER_TITLE = "Bible &amp; Breakfast, Group 3 · Prayer Requests";
-const MEMBER_TEXT = "Prayer requests and praise reports for Bible &amp; Breakfast, Group 3. Private to our group.";
+const MEMBER_TEXT = "Prayer requests and answered prayers for Bible &amp; Breakfast, Group 3. Private to our group.";
 const MANAGER_TITLE = "Manage · Bible &amp; Breakfast, Group 3 Prayer Requests";
 const MANAGER_TEXT = "Add prayer requests from the Zoom chat, keep the member list up to date, and look after the group\u2019s prayer list. Please don\u2019t share this link.";
 async function managerPage(request) {

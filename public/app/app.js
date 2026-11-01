@@ -127,11 +127,11 @@ function startApp(DATA) {
   var TABS = [
     { key: "today", label: "New Requests", icon: ICON_TODAY, count: today.length, countLabel: " new" },
     { key: "everyone", label: "All Requests", icon: ICON_PEOPLE, count: 0 },
-    { key: "praise", label: "Praise Reports", icon: STAR, count: 0 },
+    { key: "praise", label: "Answered Prayers", icon: STAR, count: 0 },
   ];
   var ICON_GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   if (DATA.role === "manager") TABS.unshift({ key: "manage", href: "#manage-chat", label: "Manage", icon: ICON_GEAR, count: 0 });
-  var LIST_NAMES = { today: "New prayer requests", everyone: "All requests", praise: "Praise reports", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Zoom chat" };
+  var LIST_NAMES = { today: "New prayer requests", everyone: "All requests", praise: "Answered prayers", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share an answered prayer", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Zoom chat" };
 
   // Always-visible navigation: a bar along the bottom on phones, a sidebar on big screens.
   var tabbar = h("nav", { class: "tabbar", "aria-label": "Main" },
@@ -325,7 +325,7 @@ function startApp(DATA) {
           h("span", { class: "action-label", text: "Add a request for " + first }),
           h("span", { class: "chev", "aria-hidden": "true", text: "›" }))),
       p.answered.length || p.praise.length ? h("section", { class: "top", "aria-labelledby": "ans-title" },
-        h("h2", { class: "section-title", id: "ans-title", text: "Answered prayers and praise" }),
+        h("h2", { class: "section-title", id: "ans-title", text: "Answered prayers" }),
         h("ul", { class: "cards" }, p.answered.concat(p.praise).map(function (it) { return reqCard(it); }))) : null,
       simpleFooter()];
   }
@@ -487,7 +487,7 @@ function startApp(DATA) {
       });
     });
     return [
-      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#" + (ui.lastList || "today") }, "\u2039 Back to " + ({ today: "New Prayer Requests", everyone: "All Requests", praise: "Praise Reports" }[ui.lastList] || "New Prayer Requests"))),
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#" + (ui.lastList || "today") }, "\u2039 Back to " + ({ today: "New Prayer Requests", everyone: "All Requests", praise: "Answered Prayers" }[ui.lastList] || "New Prayer Requests"))),
       h("div", null,
         h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Ask for Prayer" }),
         h("p", { class: "hint", text: "Your request goes on the prayer list so the whole group can pray for it." })),
@@ -501,12 +501,12 @@ function startApp(DATA) {
       h("div", { class: "thanks", role: "status" },
         h("span", { class: "pray-glow", "aria-hidden": "true" }, h("span", { class: "pray-emoji", text: isPraise ? "\uD83D\uDE4C" : "\uD83D\uDE4F" })),
         h("h1", { id: "page-title", tabindex: "-1", text: isPraise ? "Praise God, " + firstName(item.name) + "!" : "We\u2019re praying for " + firstName(item.name) }),
-        h("p", { text: isPraise ? "Thank you for sharing. It is on the Praise Reports page for the group to celebrate." : firstName(item.name) + "\u2019s request is on the prayer list, so the whole group can pray for it." }),
+        h("p", { text: isPraise ? "Thank you for sharing. It is on the Answered Prayers page for the group to celebrate." : firstName(item.name) + "\u2019s request is on the prayer list, so the whole group can pray for it." }),
         h("blockquote", { class: "verse" },
           h("p", { text: isPraise ? "\u201CGive thanks to the Lord, for he is good; his love endures forever.\u201D" : "\u201CCast all your anxiety on him because he cares for you.\u201D" }),
           h("cite", { text: isPraise ? "Psalm 107:1" : "1 Peter 5:7" })),
         h("a", { class: "btn primary wide-btn", href: isPraise ? "#praise" : "#" + p.slug, onclick: function () { ui.added = null; } },
-          isPraise ? "See it on Praise Reports" : "See it under " + firstName(item.name) + "\u2019s name"),
+          isPraise ? "See it on Answered Prayers" : "See it under " + firstName(item.name) + "\u2019s name"),
         h("a", { class: "btn wide-btn", href: "#today", onclick: function () { ui.added = null; } }, "Back to New Prayer Requests"),
         h("button", { type: "button", class: "linklike", title: "Take it back and return to the form with your words", onclick: function () {
           removeAdded(item);
@@ -556,7 +556,7 @@ function startApp(DATA) {
     var tb = textBox("u-note", "update", "For example: The surgery went well and she is home.", "u-note-help");
     var noteField = h("div", { class: "field", hidden: choice !== "answered" },
       fieldLabel("u-note", "Would you like to share what happened?", false),
-      helpText("u-note-help", "It is shown with the prayer on Praise Reports. Please leave out sensitive details, like full names, medical information or phone numbers."), tb.restored, tb.el, tb.count,
+      helpText("u-note-help", "It is shown with the prayer on Answered Prayers. Please leave out sensitive details, like full names, medical information or phone numbers."), tb.restored, tb.el, tb.count,
       h("p", { class: "error", id: "u-note-err", hidden: true }));
     var submit = h("button", { type: "submit", class: "btn primary wide-btn raised" });
     function submitText() {
@@ -565,8 +565,8 @@ function startApp(DATA) {
         submit.textContent = n > 1 ? "Take " + n + " off the list" : "Take off the list";
         submit.title = "Take the chosen prayer requests off the prayer list";
       } else {
-        submit.textContent = n > 1 ? "Move " + n + " prayers to Praise Reports" : "Move to Praise Reports";
-        submit.title = "Move the chosen prayers to Praise Reports";
+        submit.textContent = n > 1 ? "Move " + n + " prayers to Answered Prayers" : "Move to Answered Prayers";
+        submit.title = "Move the chosen prayers to Answered Prayers";
       }
     }
     var pickErr = h("p", { class: "error", id: "u-pick-err", hidden: true, text: "Please choose at least one prayer request." });
@@ -598,7 +598,7 @@ function startApp(DATA) {
         pickList, pickErr),
       h("fieldset", { class: "field" }, fieldLegend((many ? "2. " : "") + "What happened?", true),
         h("div", { class: "choices", role: "radiogroup", "aria-required": "true", "aria-label": "What happened?" },
-          option("answered", "God answered " + (many ? "these prayers" : "this prayer"), "They move to Praise Reports so everyone can celebrate."),
+          option("answered", "God answered " + (many ? "these prayers" : "this prayer"), "They move to Answered Prayers so everyone can celebrate."),
           option("removed", "No longer needed", "They are taken off the prayer list."))),
       noteField,
       submit,
@@ -638,10 +638,10 @@ function startApp(DATA) {
         h("span", { class: "thanks-icon", html: answered ? STAR : CHECK }),
         h("h1", { id: "page-title", tabindex: "-1", text: answered ? "Praise God!" : "Taken off the list" }),
         h("p", { text: answered
-          ? (n === 1 ? "This prayer is now in Praise Reports for everyone to see:" : n + " prayers are now in Praise Reports for everyone to see:")
+          ? (n === 1 ? "This prayer is now in Answered Prayers for everyone to see:" : n + " prayers are now in Answered Prayers for everyone to see:")
           : (n === 1 ? "This request is no longer on the prayer list:" : n + " requests are no longer on the prayer list:") }),
         h("ul", { class: "moved-list" }, items.map(function (it) { return h("li", { text: it.text }); })),
-        answered ? h("a", { class: "btn primary wide-btn", href: "#praise", onclick: function () { ui.updated = null; } }, "See Praise Reports") : null,
+        answered ? h("a", { class: "btn primary wide-btn", href: "#praise", onclick: function () { ui.updated = null; } }, "See Answered Prayers") : null,
         h("a", { class: "btn wide-btn" + (answered ? "" : " primary"), href: p ? "#" + p.slug : "#everyone", onclick: function () { ui.updated = null; } },
           p ? "Back to " + firstName(items[0].name) + "’s page" : "Back to All Requests"),
         h("button", { type: "button", class: "linklike", title: n === 1 ? "Put it back the way it was" : "Put all of them back the way they were", onclick: function () {
@@ -664,7 +664,7 @@ function startApp(DATA) {
       h("span", { class: "avatar praise-av", "aria-hidden": "true", text: initials(it.name) }),
       h("div", { class: "praise-body" },
         h("p", { class: "praise-head" }, h("strong", { text: it.name }), h("span", { class: "praise-date", text: fmt(it.answered || it.added) })),
-        h("p", { class: "praise-kind" }, h("span", { class: "praise-icon", html: STAR }), answered ? "Prayer answered" : "Praise report"),
+        h("p", { class: "praise-kind" }, h("span", { class: "praise-icon", html: STAR }), answered ? "Prayer request answered" : "Shared good news"),
         h("p", { class: "praise-text", text: main }),
         answered && it.note ? h("p", { class: "praise-was" }, h("span", { text: "Prayer request: " }), it.text) : null));
   }
@@ -686,7 +686,7 @@ function startApp(DATA) {
     var recent = recentAll.slice(0, RECENT_MAX);
     var months = praiseMonths();
     return [
-      header("Praise Reports", praiseItems.length ? plural(praiseItems.length, "praise report", "praise reports") : "", "praise"),
+      header("Answered Prayers", praiseItems.length ? plural(praiseItems.length, "answered prayer", "answered prayers") : "", "praise"),
       praiseItems.length ? [
         h("section", { class: "top", "aria-labelledby": "pr-recent" },
           h("div", null,
@@ -697,32 +697,32 @@ function startApp(DATA) {
         h("section", { class: "top", "aria-labelledby": "pr-months" },
           h("div", null,
             h("h2", { class: "section-title", id: "pr-months", text: "By month" }),
-            h("p", { class: "hint lead", text: "Tap a month to see all of its praise reports." })),
+            h("p", { class: "hint lead", text: "Tap a month to see all of its answered prayers." })),
           h("ul", { class: "rows months" }, months.map(function (m) {
             return h("li", null, h("a", { class: "row-link", href: "#praise-" + m.key, id: "row-praise-" + m.key,
-                "aria-label": monthLabel(m.key) + ", " + plural(m.items.length, "praise report", "praise reports") },
+                "aria-label": monthLabel(m.key) + ", " + plural(m.items.length, "answered prayer", "answered prayers") },
               h("span", { class: "avatar month-av", "aria-hidden": "true", html: STAR }),
               h("span", { class: "row-main", "aria-hidden": "true" },
                 h("span", { class: "row-name", text: monthLabel(m.key) }),
-                h("span", { class: "row-preview", text: plural(m.items.length, "praise report", "praise reports") })),
+                h("span", { class: "row-preview", text: plural(m.items.length, "answered prayer", "answered prayers") })),
               h("span", { class: "row-go", "aria-hidden": "true" }, "See", h("span", { class: "chev", text: "›" }))));
           })))]
-        : h("div", { class: "empty" }, h("strong", { text: "No praise reports yet." }), h("p", { text: "Answered prayers and shared praise reports will appear here." })),
+        : h("div", { class: "empty" }, h("strong", { text: "No answered prayers yet." }), h("p", { text: "When God answers a prayer, share it here so the group can celebrate." })),
       footer()];
   }
   function praiseMonthPage(ym) {
     var items = praiseItems.filter(function (it) { return monthKey(praiseDate(it)) === ym; });
     return [
-      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#praise" }, "‹ Back to Praise Reports")),
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#praise" }, "‹ Back to Answered Prayers")),
       h("div", null,
         h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: monthLabel(ym) }),
-        h("p", { class: "hint", text: plural(items.length, "praise report", "praise reports") + ", newest first" })),
+        h("p", { class: "hint", text: plural(items.length, "answered prayer", "answered prayers") + ", newest first" })),
       items.length ? h("ul", { class: "praise-list" }, items.map(praiseRow))
-        : h("div", { class: "empty" }, h("strong", { text: "No praise reports this month." }))];
+        : h("div", { class: "empty" }, h("strong", { text: "No answered prayers this month." }))];
   }
   function praiseButton() {
     return h("a", { class: "add-btn", href: "#praise-add", onclick: function () { ui.added = null; ui.updated = null; ui.praiseFor = null; ui.praiseText = ""; } },
-      h("span", { class: "add-icon", "aria-hidden": "true", text: "+" }), h("span", { text: "Share praise" }));
+      h("span", { class: "add-icon", "aria-hidden": "true", text: "+" }), h("span", { text: "Share an answered prayer" }));
   }
 
   function praiseAddPage() {
@@ -748,7 +748,7 @@ function startApp(DATA) {
       }
       reqWrap.append(h("fieldset", { class: "field" },
         fieldLegend("Is this about one of " + firstName(who.value()) + "’s prayer requests?", true),
-        helpText("pr-pick-help", "If it is, that request moves from the prayer list to Praise."),
+        helpText("pr-pick-help", "If it is, that request moves from the prayer list to Answered Prayers."),
         h("div", { class: "choices" },
           open.map(function (it, i) { return radio("pf-" + i, it, it.text, "Asked " + fmt(it.added)); }),
           radio("pf-new", "new", "Something else", "Good news that is not on the prayer list")),
@@ -756,12 +756,12 @@ function startApp(DATA) {
     }
     who.onChange(function () { ui.praiseWho = who.value(); ui.praiseFor = null; drawReqs(); });
     drawReqs();
-    var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Share this good news with everyone in Group 3" }, "Share praise report");
+    var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Share this good news with everyone in Group 3" }, "Share with the group");
     var form = h("form", { class: "form", novalidate: true },
       h("div", { class: "field" }, fieldLabel("pr-who", "Who is this from?", true),
         helpText("pr-who-help", "Choose the name it should appear under."), who.el),
       reqWrap,
-      h("div", { class: "field" }, fieldLabel("pr-text", "Share your praise report", true),
+      h("div", { class: "field" }, fieldLabel("pr-text", "What would you like to share?", true),
         helpText("pr-text-help", "Tell the group what God has done."),
         tb.restored, tb.el, tb.count, textErr),
       submit,
@@ -791,9 +791,9 @@ function startApp(DATA) {
       }
     });
     return [
-      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#praise" }, "\u2039 Back to Praise Reports")),
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#praise" }, "\u2039 Back to Answered Prayers")),
       h("div", null,
-        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Share a Praise Report" }),
+        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Share an Answered Prayer" }),
         h("p", { class: "hint", text: "Has God answered a prayer? Let the group celebrate with you." })),
       privacyNote(),
       form];
@@ -804,7 +804,7 @@ function startApp(DATA) {
   function addTips() {
     tip(document.getElementById("nav-today"), "See the newest prayer requests");
     tip(document.getElementById("nav-everyone"), "See everyone we are praying for");
-    tip(document.getElementById("nav-praise"), "See answered prayers and praise reports");
+    tip(document.getElementById("nav-praise"), "See answered prayers");
     document.querySelectorAll(".row-link, .tile").forEach(function (a) {
       var n = a.querySelector(".row-name, .tile-name"); if (n) tip(a, "Open " + n.textContent + "’s prayer requests");
     });
@@ -901,7 +901,7 @@ function startApp(DATA) {
       ta.value = it.text;
       return h("li", { class: "m-row editing" },
         h("div", { class: "field" }, fieldLabel("me-name", "Name", true), sel),
-        h("div", { class: "field" }, fieldLabel("me-text", it.kind === "praise" ? "Praise report" : "Prayer request", true), ta),
+        h("div", { class: "field" }, fieldLabel("me-text", it.kind === "praise" ? "Answered prayer" : "Prayer request", true), ta),
         h("div", { class: "manage-actions" },
           h("button", { type: "button", class: "btn primary", onclick: function () {
             if (!ta.value.trim()) { ta.setAttribute("aria-invalid", "true"); ta.focus(); return; }
@@ -1045,15 +1045,15 @@ function startApp(DATA) {
   // ---------- clean addresses: /praying-together/members instead of #everyone ----------
   // Screens keep their short internal names; these two functions translate to and from the address.
   var BASE = "/" + encodeURIComponent(GROUP_KEY);
-  var KEY_TO_PATH = { today: "", everyone: "all-requests", praise: "praise-reports", add: "add-prayer", update: "answered-prayer",
-    "praise-add": "share-praise", manage: "manage/prayer-requests", "manage-members": "manage/members", "manage-chat": "manage/zoom-chat" };
+  var KEY_TO_PATH = { today: "", everyone: "all-requests", praise: "answered-prayers", add: "add-prayer", update: "answered-prayer",
+    "praise-add": "share-answered-prayer", manage: "manage/prayer-requests", "manage-members": "manage/members", "manage-chat": "manage/zoom-chat" };
   var MANAGER = DATA.role === "manager";
   function pathFor(key) {
     var m;
     if (key === "today" && MANAGER) return BASE + "/new-requests";
     if (KEY_TO_PATH[key] !== undefined) return BASE + (KEY_TO_PATH[key] ? "/" + KEY_TO_PATH[key] : "");
     if ((m = /^p-(.+)$/.exec(key))) return BASE + "/members/" + m[1];
-    if ((m = /^praise-(\d{4}-\d{2})$/.exec(key))) return BASE + "/praise-reports/" + m[1];
+    if ((m = /^praise-(\d{4}-\d{2})$/.exec(key))) return BASE + "/answered-prayers/" + m[1];
     return BASE;
   }
   function isRouteKey(key) { return KEY_TO_PATH[key] !== undefined || /^p-./.test(key) || /^praise-\d{4}-\d{2}$/.test(key); }
@@ -1064,7 +1064,8 @@ function startApp(DATA) {
     if (a === "new" || a === "new-requests") return "today";
     if (a === "all-requests") return "everyone";
     if (a === "members") return b ? "p-" + b : "everyone";
-    if (a === "praise-reports") return /^\d{4}-\d{2}$/.test(b) ? "praise-" + b : "praise";
+    if (a === "share-praise") return "praise-add";
+    if (a === "praise-reports" || a === "answered-prayers") return /^\d{4}-\d{2}$/.test(b) ? "praise-" + b : "praise";
     if (a === "manage") return b === "members" ? "manage-members" : b === "zoom-chat" ? "manage-chat" : "manage";
     for (var k in KEY_TO_PATH) if (KEY_TO_PATH[k] === a) return k;
     return "today";
@@ -1111,7 +1112,7 @@ function startApp(DATA) {
     setNav(nav);
     addTips();
     linkify();
-    document.title = (bySlug[page] ? bySlug[page].name : /^praise-\d{4}-\d{2}$/.test(page) ? monthLabel(page.slice(7)) + " praise" : LIST_NAMES[page]) + " \u00B7 Group 3 Prayer Requests";
+    document.title = (bySlug[page] ? bySlug[page].name : /^praise-\d{4}-\d{2}$/.test(page) ? monthLabel(page.slice(7)) + " answered prayers" : LIST_NAMES[page]) + " \u00B7 Group 3 Prayer Requests";
     if (keepScroll === true) { window.scrollTo(0, y); return; }
     if (!bySlug[page] && ui.lastSlug && ui.lastList === page) {
       var spot = document.getElementById("row-" + ui.lastSlug) || document.getElementById("tile-" + ui.lastSlug);
