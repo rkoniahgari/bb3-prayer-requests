@@ -113,7 +113,7 @@ function startApp(DATA) {
   });
   function addButton(forName) {
     return h("a", { class: "add-btn", href: "#add", onclick: function () { ui.addFor = forName || null; ui.added = null; } },
-      h("span", { class: "add-icon", "aria-hidden": "true", text: "+" }), h("span", { text: forName ? "Add a prayer for " + firstName(forName) : "Add a prayer" }));
+      h("span", { class: "add-icon", "aria-hidden": "true", text: "+" }), h("span", { text: forName ? "Add a request for " + firstName(forName) : "Ask for prayer" }));
   }
   var PLUS = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
   var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
@@ -127,7 +127,7 @@ function startApp(DATA) {
   ];
   var ICON_GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   if (DATA.role === "manager") TABS.push({ key: "manage", label: "Manage", icon: ICON_GEAR, count: 0 });
-  var LIST_NAMES = { today: "New prayer requests", everyone: "Members", praise: "Praise reports", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Add from chat" };
+  var LIST_NAMES = { today: "New prayer requests", everyone: "Members", praise: "Praise reports", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Zoom chat" };
 
   // Always-visible navigation: a bar along the bottom on phones, a sidebar on big screens.
   var tabbar = h("nav", { class: "tabbar", "aria-label": "Main" },
@@ -176,16 +176,16 @@ function startApp(DATA) {
   function todayPage() {
     return [
       sampleNote(),
-      header("New Prayer Requests", latest ? "From the study on " + fmt(latest, true) : "Shared at our Bible studies"),
+      header("New Prayer Requests", latest ? "Shared on " + fmt(latest, true) : "Shared at our Bible studies"),
       leaderStrip(),
       today.length ? h("section", { class: "top", "aria-label": "New prayer requests, " + plural(today.length, "person", "people") },
-        h("p", { class: "hint lead", text: "Tap a name to read their prayer request." }),
+        h("p", { class: "hint lead", text: "Tap a name to read their prayer requests." }),
         todayRows()) :
         h("div", { class: "empty" }, h("strong", { text: "No new prayer requests yet." }),
           h("p", { text: "New requests appear here after each Bible study." }),
           h("a", { class: "btn primary", href: "#everyone" }, "See all members")),
       today.length ? h("a", { class: "btn wide-btn", href: "#everyone" }, "See all members ›") : null,
-      h("p", { class: "list-note", text: "This list is updated after each Monday, Wednesday and Friday study." }),
+      h("p", { class: "list-note", text: "New requests are added after each Monday, Wednesday and Friday study, and right away when someone asks for prayer here." }),
       footer()];
   }
   function todayRows() {
@@ -209,7 +209,7 @@ function startApp(DATA) {
       header("Members", plural(everyone.length, "member", "members") + " \u00B7 A to Z"),
       h("p", { class: "members-hint" },
         h("span", { class: "lead-text", text: "Tap a name to see their prayer requests." }),
-        latest && today.length ? [" ", h("span", { class: "badge", text: "New" }), " marks a new request."] : null),
+        latest && today.length ? [" ", h("span", { class: "badge", text: "New" }), " means the request was just added."] : null),
       memberSearch(),
       h("ul", { class: "grid", id: "member-grid" }, everyone.map(function (p) {
         return h("li", { "data-name": nameKey(p.name) }, h("a", { class: "tile" + (p.isNew ? " is-new" : ""), href: "#" + p.slug, id: "tile-" + p.slug,
@@ -293,13 +293,13 @@ function startApp(DATA) {
     var first = firstName(p.name);
     return [
       h("div", { class: "topbar" },
-        h("a", { class: "btn", href: "#" + (list === today ? "today" : "everyone") }, "‹ Back to " + (list === today ? "New Requests" : "Members"))),
+        h("a", { class: "btn", href: "#" + (list === today ? "today" : "everyone") }, "‹ Back to " + (list === today ? "New Prayer Requests" : "Members"))),
       h("div", { class: "who" + (p.isNew ? " is-new" : "") },
         h("span", { class: "avatar", "aria-hidden": "true", text: initials(p.name) }),
         h("div", null, h("h1", { id: "page-title", tabindex: "-1", text: p.name }),
           h("p", { text: p.open.length ? plural(p.open.length, "prayer request", "prayer requests") : "No prayer requests yet" }))),
       h("section", { class: "top", "aria-labelledby": "pray-title" },
-        h("h2", { class: "section-title", id: "pray-title", text: "Please pray for" }),
+        h("h2", { class: "section-title", id: "pray-title", text: p.open.length ? "Please pray for" : "Prayer requests" }),
         p.open.length ? h("ul", { class: "cards" }, p.open.map(function (it) { return reqCard(it); }))
           : h("p", { class: "empty-note", text: "No prayer requests right now." })),
       // One quiet card with both things a person can do here.
@@ -308,12 +308,12 @@ function startApp(DATA) {
         p.open.length ? h("a", { class: "action-row", href: "#update", title: "Choose a prayer that was answered or is no longer needed",
             onclick: function () { ui.updatingPerson = p; ui.updatingSet = null; ui.updated = null; ui.updateChoice = null; } },
           h("span", { class: "action-icon star", html: STAR }),
-          h("span", { class: "action-label", text: "Mark a prayer as answered" }),
+          h("span", { class: "action-label", text: "Mark a request as answered" }),
           h("span", { class: "chev", "aria-hidden": "true", text: "›" })) : null,
         h("a", { class: "action-row", href: "#add", title: "Add a new prayer request for " + p.name,
             onclick: function () { ui.addFor = p.name; ui.added = null; } },
           h("span", { class: "action-icon plus", html: PLUS }),
-          h("span", { class: "action-label", text: "Add a new prayer for " + first }),
+          h("span", { class: "action-label", text: "Add a request for " + first }),
           h("span", { class: "chev", "aria-hidden": "true", text: "›" }))),
       p.answered.length || p.praise.length ? h("section", { class: "top", "aria-labelledby": "ans-title" },
         h("h2", { class: "section-title", id: "ans-title", text: "Answered prayers and praise" }),
@@ -374,13 +374,13 @@ function startApp(DATA) {
   function nameField(id, preset) {
     var names = (DATA.members || []).slice().sort(function (a, b) { return a.localeCompare(b); });
     var sel = h("select", { id: id, class: "input", "aria-required": "true", "aria-describedby": id + "-help " + id + "-err" },
-      h("option", { value: "", text: "Choose your name" }),
+      h("option", { value: "", text: "Choose a name" }),
       names.map(function (n) { return h("option", { value: n, text: n }); }),
-      h("option", { value: "__other", text: "My name is not on this list" }));
+      h("option", { value: "__other", text: "The name is not on this list" }));
     var other = h("input", { id: id + "-other", class: "input", type: "text", autocomplete: "name", maxlength: "60", "aria-required": "true", "aria-describedby": id + "-other-err" });
-    var otherErr = h("p", { class: "error", id: id + "-other-err", hidden: true, text: "Please type your name." });
-    var otherWrap = h("div", { class: "field sub-field", hidden: true }, fieldLabel(id + "-other", "Please type your name", true), other, otherErr);
-    var err = h("p", { class: "error", id: id + "-err", hidden: true, text: "Please choose your name from the list." });
+    var otherErr = h("p", { class: "error", id: id + "-other-err", hidden: true, text: "Please type the name." });
+    var otherWrap = h("div", { class: "field sub-field", hidden: true }, fieldLabel(id + "-other", "Type the name", true), other, otherErr);
+    var err = h("p", { class: "error", id: id + "-err", hidden: true, text: "Please choose a name from the list." });
     var start = preset || remembered();
     if (start && names.indexOf(start) < 0) { sel.value = "__other"; other.value = start; otherWrap.hidden = false; }
     else sel.value = start || "";
@@ -395,8 +395,8 @@ function startApp(DATA) {
       onChange: function (fn) { sel.addEventListener("change", fn); other.addEventListener("change", fn); },
       check: function () {
         err.hidden = true; otherErr.hidden = true; sel.removeAttribute("aria-invalid"); other.removeAttribute("aria-invalid");
-        if (!sel.value) { err.hidden = false; sel.setAttribute("aria-invalid", "true"); return { id: id, msg: "Choose your name" }; }
-        if (sel.value === "__other" && !other.value.trim()) { otherErr.hidden = false; other.setAttribute("aria-invalid", "true"); return { id: id + "-other", msg: "Type your name" }; }
+        if (!sel.value) { err.hidden = false; sel.setAttribute("aria-invalid", "true"); return { id: id, msg: "Choose a name" }; }
+        if (sel.value === "__other" && !other.value.trim()) { otherErr.hidden = false; other.setAttribute("aria-invalid", "true"); return { id: id + "-other", msg: "Type the name" }; }
         return null;
       },
     };
@@ -435,11 +435,11 @@ function startApp(DATA) {
     if (ui.added) return thanksView(ui.added);
     var who = nameField("f-name", ui.addFor);
     var kind = "request";
-    function labelFor(k) { return k === "praise" ? "What would you like to thank God for?" : "What would you like us to pray for?"; }
+    function labelFor(k) { return k === "praise" ? "What would you like to thank God for?" : "What should the group pray for?"; }
     function exampleFor(k) { return k === "praise" ? "For example: My test results came back clear." : "For example: Healing for my knee after surgery on Tuesday."; }
     var tb = textBox("f-text", "add", exampleFor(kind), "f-text-help");
     var labelWords = h("span", { text: labelFor(kind) });
-    var textErr = h("p", { class: "error", id: "f-text-err", hidden: true, text: "Please write a few words about your request." });
+    var textErr = h("p", { class: "error", id: "f-text-err", hidden: true, text: "Please write what the group should pray for." });
     function choice(value, title, sub, icon) {
       var input = h("input", { type: "radio", name: "kind", value: value, id: "k-" + value });
       input.checked = kind === value;
@@ -453,7 +453,7 @@ function startApp(DATA) {
       h("div", { class: "field" }, fieldLabel("f-name", "Whose prayer request is this?", true),
         helpText("f-name-help", "Choose the name it should appear under."), who.el),
       h("div", { class: "field" }, h("label", { for: "f-text" }, labelWords, " ", need(true)),
-        helpText("f-text-help", "Keep it short."),
+        helpText("f-text-help", "One or two sentences is plenty."),
         tb.restored, tb.el, tb.count, textErr),
       submit,
       h("a", { class: "btn wide-btn", href: "#" + (ui.lastList || "today"), title: "Leave without sharing. What you wrote is kept for next time." }, "Cancel"));
@@ -462,7 +462,7 @@ function startApp(DATA) {
       var errors = [], e1 = who.check(), words = tb.el.value.trim();
       if (e1) errors.push(e1);
       textErr.hidden = !!words; tb.el.setAttribute("aria-invalid", String(!words));
-      if (!words) errors.push({ id: "f-text", msg: "Write a few words about your request" });
+      if (!words) errors.push({ id: "f-text", msg: "Write what the group should pray for" });
       if (errors.length) { errorSummary(form, errors); return; }
       submit.disabled = true; submit.textContent = "Sharing…";
       var name = who.value();
@@ -479,10 +479,10 @@ function startApp(DATA) {
       });
     });
     return [
-      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#" + (ui.lastList || "today") }, "\u2039 Back to " + ({ today: "New Requests", everyone: "Members", praise: "Praise Reports" }[ui.lastList] || "New Requests"))),
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#" + (ui.lastList || "today") }, "\u2039 Back to " + ({ today: "New Prayer Requests", everyone: "Members", praise: "Praise Reports" }[ui.lastList] || "New Prayer Requests"))),
       h("div", null,
-        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Add a Prayer Request" }),
-        h("p", { class: "hint", text: "Share something you\u2019d like the group to pray about." })),
+        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Ask for Prayer" }),
+        h("p", { class: "hint", text: "Your request goes on the prayer list so the whole group can pray for it." })),
       privacyNote(),
       form];
   }
@@ -492,14 +492,14 @@ function startApp(DATA) {
     return [
       h("div", { class: "thanks", role: "status" },
         h("span", { class: "pray-glow", "aria-hidden": "true" }, h("span", { class: "pray-emoji", text: isPraise ? "\uD83D\uDE4C" : "\uD83D\uDE4F" })),
-        h("h1", { id: "page-title", tabindex: "-1", text: isPraise ? "Praise God, " + firstName(item.name) + "!" : "We\u2019re praying for you, " + firstName(item.name) }),
-        h("p", { text: isPraise ? "Thank you for sharing. Your praise report is on the Praise Reports page for the group to celebrate with you." : "Your request is on the list under your name, so the whole group can pray for it." }),
+        h("h1", { id: "page-title", tabindex: "-1", text: isPraise ? "Praise God, " + firstName(item.name) + "!" : "We\u2019re praying for " + firstName(item.name) }),
+        h("p", { text: isPraise ? "Thank you for sharing. It is on the Praise Reports page for the group to celebrate." : firstName(item.name) + "\u2019s request is on the prayer list, so the whole group can pray for it." }),
         h("blockquote", { class: "verse" },
           h("p", { text: isPraise ? "\u201CGive thanks to the Lord, for he is good; his love endures forever.\u201D" : "\u201CCast all your anxiety on him because he cares for you.\u201D" }),
           h("cite", { text: isPraise ? "Psalm 107:1" : "1 Peter 5:7" })),
         h("a", { class: "btn primary wide-btn", href: isPraise ? "#praise" : "#" + p.slug, onclick: function () { ui.added = null; } },
-          isPraise ? "See it on the Praise page" : "See it under your name"),
-        h("a", { class: "btn wide-btn", href: "#today", onclick: function () { ui.added = null; } }, "Back to New Requests"),
+          isPraise ? "See it on Praise Reports" : "See it under " + firstName(item.name) + "\u2019s name"),
+        h("a", { class: "btn wide-btn", href: "#today", onclick: function () { ui.added = null; } }, "Back to New Prayer Requests"),
         h("button", { type: "button", class: "linklike", title: "Take it back and return to the form with your words", onclick: function () {
           removeAdded(item);
           draft(isPraise && item.source === "web" && ui.lastList === "praise" ? "praise" : "add", item.text);
@@ -545,11 +545,10 @@ function startApp(DATA) {
     if (!chosen.length && p.open.length === 1) chosen = [p.open[0]];
     ui.updatingSet = chosen;
     var choice = ui.updateChoice || "answered";
-    var who = nameField("u-who", remembered() || p.name);
     var tb = textBox("u-note", "update", "For example: The surgery went well and she is home.", "u-note-help");
     var noteField = h("div", { class: "field", hidden: choice !== "answered" },
       fieldLabel("u-note", "Would you like to share what happened?", false),
-      helpText("u-note-help", "This will be shown with the prayer on the Praise page."), tb.restored, tb.el, tb.count,
+      helpText("u-note-help", "It is shown with the prayer on Praise Reports. Please leave out medical details."), tb.restored, tb.el, tb.count,
       h("p", { class: "error", id: "u-note-err", hidden: true }));
     var submit = h("button", { type: "submit", class: "btn primary wide-btn raised" });
     function submitText() {
@@ -558,7 +557,7 @@ function startApp(DATA) {
         submit.textContent = n > 1 ? "Take " + n + " off the list" : "Take off the list";
         submit.title = "Take the chosen prayer requests off the prayer list";
       } else {
-        submit.textContent = n > 1 ? "Move " + n + " prayers to Praise" : "Move to Praise";
+        submit.textContent = n > 1 ? "Move " + n + " prayers to Praise Reports" : "Move to Praise Reports";
         submit.title = "Move the chosen prayers to Praise Reports";
       }
     }
@@ -592,10 +591,8 @@ function startApp(DATA) {
       h("fieldset", { class: "field" }, fieldLegend((many ? "2. " : "") + "What happened?", true),
         h("div", { class: "choices", role: "radiogroup", "aria-required": "true", "aria-label": "What happened?" },
           option("answered", "God answered " + (many ? "these prayers" : "this prayer"), "They move to Praise Reports so everyone can celebrate."),
-          option("removed", "No longer needed", "They are quietly taken off the prayer list."))),
+          option("removed", "No longer needed", "They are taken off the prayer list."))),
       noteField,
-      h("div", { class: "field" }, fieldLabel("u-who", "Who is updating this?", true),
-        helpText("u-who-help", "So the group knows who shared the news."), who.el),
       submit,
       h("a", { class: "btn wide-btn", href: "#" + p.slug, title: "Leave without changing anything" }, "Cancel, keep praying"));
     submitText();
@@ -604,13 +601,11 @@ function startApp(DATA) {
       var errors = [];
       pickErr.hidden = ui.updatingSet.length > 0;
       if (!ui.updatingSet.length) errors.push({ id: "w-0", msg: "Choose at least one prayer request" });
-      var e2 = who.check(); if (e2) errors.push(e2);
       if (errors.length) { errorSummary(form, errors); return; }
-      var items = ui.updatingSet.slice(), name = who.value();
+      var items = ui.updatingSet.slice();
       submit.disabled = true; submit.textContent = "Saving…";
-      rememberName(name);
       var befores = items.map(function (it) { return { answered: it.answered, note: it.note, removed: !!it.removed }; });
-      var change = ui.updateChoice === "removed" ? { removed: true, by: name } : { answered: todayISO(), note: tb.el.value.trim(), by: name };
+      var change = ui.updateChoice === "removed" ? { removed: true } : { answered: todayISO(), note: tb.el.value.trim() };
       Promise.all(items.map(function (it) { return saveUpdate(it, change); })).then(function () {
         items.forEach(function (it) { applyChange(it, change); });
         shape(); updateBadge(); tb.clear();
@@ -622,8 +617,8 @@ function startApp(DATA) {
     return [
       h("div", { class: "topbar" }, h("a", { class: "btn", href: "#" + p.slug }, "‹ Back to " + firstName(p.name))),
       h("div", null,
-        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "A prayer was answered" }),
-        h("p", { class: "hint", text: "Update " + firstName(p.name) + "’s prayer list. You can undo this afterwards." })),
+        h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Update a Prayer Request" }),
+        h("p", { class: "hint", text: "Change " + firstName(p.name) + "’s prayer requests. You can undo this on the next screen." })),
       form];
   }
   function updatedView(u) {
@@ -683,7 +678,7 @@ function startApp(DATA) {
     var recent = recentAll.slice(0, RECENT_MAX);
     var months = praiseMonths();
     return [
-      header("Praise Reports", plural(praiseItems.length, "answer", "answers") + " to prayer", "praise"),
+      header("Praise Reports", praiseItems.length ? plural(praiseItems.length, "praise report", "praise reports") : "", "praise"),
       praiseItems.length ? [
         h("section", { class: "top", "aria-labelledby": "pr-recent" },
           h("div", null,
@@ -704,7 +699,7 @@ function startApp(DATA) {
                 h("span", { class: "row-preview", text: plural(m.items.length, "praise report", "praise reports") })),
               h("span", { class: "row-go", "aria-hidden": "true" }, "See", h("span", { class: "chev", text: "›" }))));
           })))]
-        : h("div", { class: "empty" }, h("strong", { text: "No praise reports yet." }), h("p", { text: "Answered prayers will appear here." })),
+        : h("div", { class: "empty" }, h("strong", { text: "No praise reports yet." }), h("p", { text: "Answered prayers and shared praise reports will appear here." })),
       footer()];
   }
   function praiseMonthPage(ym) {
@@ -788,7 +783,7 @@ function startApp(DATA) {
       }
     });
     return [
-      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#praise" }, "\u2039 Back to Praise")),
+      h("div", { class: "topbar" }, h("a", { class: "btn", href: "#praise" }, "\u2039 Back to Praise Reports")),
       h("div", null,
         h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Share a Praise Report" }),
         h("p", { class: "hint", text: "Has God answered a prayer? Let the group celebrate with you." })),
@@ -836,18 +831,6 @@ function startApp(DATA) {
   function shortText(t) { return t.length > 40 ? t.slice(0, 38) + "…" : t; }
   var DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   // The routine runs at 12:23 pm Eastern on Mondays, Wednesdays and Fridays.
-  function nextSortTime(iso) {
-    var parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hour12: false })
-      .formatToParts(iso ? new Date(iso) : new Date());
-    var get = function (t) { return parts.filter(function (p) { return p.type === t; })[0].value; };
-    var day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday"));
-    var mins = (Number(get("hour")) % 24) * 60 + Number(get("minute"));
-    for (var k = 0; k < 8; k++) {
-      var d = (day + k) % 7;
-      if ((d === 1 || d === 3 || d === 5) && (k > 0 || mins < 12 * 60 + 23)) return "around 12:30 pm Eastern on " + DAY_NAMES[d];
-    }
-    return "after the next study";
-  }
   function managePage(page) {
     if (DATA.role !== "manager") return todayPage();
     var section = page === "manage-members" ? "members" : page === "manage-chat" ? "chat" : "requests";
@@ -856,7 +839,7 @@ function startApp(DATA) {
     var sections = [
       ["requests", "#manage", "Requests", all.filter(function (it) { return !it.archived; }).length],
       ["members", "#manage-members", "Members", (DATA.memberRows || []).length],
-      ["chat", "#manage-chat", "From chat", waiting]];
+      ["chat", "#manage-chat", "Zoom chat", waiting]];
     var seg = h("nav", { class: "seg", "aria-label": "Manage sections" }, sections.map(function (x) {
       return h("a", { class: "seg-btn", href: x[1], "aria-current": section === x[0] ? "page" : null },
         h("span", { text: x[2] }), x[3] ? h("span", { class: "seg-count", text: String(x[3]) }) : null);
@@ -896,6 +879,7 @@ function startApp(DATA) {
           onclick: function () { ui.mFilter = c[0]; ui.mEdit = null; ui.mConfirm = null; route(true); } },
           h("span", { text: c[1] }), h("span", { class: "chip-count", text: String(groups[c[0]].length) }));
       })),
+      h("p", { class: "hint", text: f === "list" ? "Everyone in the group can see these." : f === "hidden" ? "Not shown to the group. Tap the eye to show one again." : "Taken off the list. Tap restore to bring one back." }),
       rows.length ? h("ul", { class: "manage-list" }, rows.map(manageRow))
         : h("p", { class: "empty-note", text: f === "list" ? "No prayer requests on the list." : f === "hidden" ? "Nothing is hidden." : "Nothing has been removed." }));
   }
@@ -969,7 +953,8 @@ function startApp(DATA) {
     }
     return h("section", { class: "top", "aria-label": "Members" },
       h("div", { class: "link-box" },
-        h("div", { class: "link-main" }, h("p", { class: "link-label", text: "Group link" }), h("p", { class: "link-text", text: link })),
+        h("div", { class: "link-main" }, h("p", { class: "link-label", text: "Link for the group" }), h("p", { class: "link-text", text: link }),
+          h("p", { class: "link-help", text: "Send this to members. Anyone with this link can see the prayer list." })),
         copyButton(link)),
       h("div", { class: "members-tools" },
         ui.mAdding ? null : searchBox({ id: "m-search", list: "m-member-list", state: "mQuery", label: "Find a member by name",
@@ -993,7 +978,7 @@ function startApp(DATA) {
   }
 
   function manageChat() {
-    var box = h("textarea", { id: "mc-text", class: "input paste-box", rows: "10", "aria-required": "true", "aria-describedby": "mc-help mc-err",
+    var box = h("textarea", { id: "mc-text", class: "input paste-box", rows: "10", "aria-required": "true", "aria-describedby": "mc-err",
       placeholder: "Paste the prayer requests from the Zoom chat here." });
     var saved = draft("mchat");
     box.value = saved;
@@ -1001,8 +986,7 @@ function startApp(DATA) {
     var err = h("p", { class: "error", id: "mc-err", hidden: true, text: "Please paste the chat first." });
     var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Add these requests to the prayer list" }, "Add to the prayer list");
     var form = h("form", { class: "form", novalidate: true },
-      h("div", { class: "field" }, fieldLabel("mc-text", "Zoom chat", true),
-        helpText("mc-help", "Paste the prayer requests from the Zoom chat here."),
+      h("div", { class: "field" }, h("label", { for: "mc-text" }, "Paste the prayer requests from the Zoom chat here."),
         saved ? h("p", { class: "restored", text: "We kept what you pasted last time." }) : null, box, err),
       submit);
     form.addEventListener("submit", function (e) {
@@ -1017,7 +1001,7 @@ function startApp(DATA) {
         draft("mchat", "");
         return reload();
       }).then(function () {
-        notify("Thank you! These requests will be on the prayer list " + (sortingNow ? "in a few minutes." : nextSortTime() + "."), "ok");
+        notify(sortingNow ? "Thank you! These requests will be on the prayer list in a few minutes." : "Saved. These requests will be added to the prayer list soon.", "ok");
         // Check back for the result while the page is open.
         if (sortingNow) [120000, 300000].forEach(function (ms) { setTimeout(function () { reload().catch(function () {}); }, ms); });
       }, function (err) {
@@ -1026,7 +1010,7 @@ function startApp(DATA) {
       });
     });
     var inbox = DATA.inbox;
-    return h("section", { class: "top", "aria-label": "Add from chat" },
+    return h("section", { class: "top", "aria-label": "Zoom chat" },
       inbox === null ? h("p", { class: "empty-note", text: "The Chat Inbox is not connected yet. In Notion, connect the \u201CGroup 3 Chat Inbox\u201D list to the prayer app." }) : null,
       form);
   }
