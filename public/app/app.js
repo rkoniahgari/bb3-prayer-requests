@@ -181,7 +181,6 @@ function startApp(DATA) {
     return [
       sampleNote(),
       header("New Prayer Requests", latest ? "Shared on " + fmt(latest, true) : "Shared at our Bible studies"),
-      leaderStrip(),
       today.length ? h("section", { class: "top", "aria-label": "New prayer requests, " + plural(today.length, "person", "people") },
         h("p", { class: "hint lead", text: "Tap a name to read their prayer requests." }),
         todayRows()) :
@@ -854,19 +853,6 @@ function startApp(DATA) {
       header("Manage", "", "none"),
       seg,
       section === "members" ? manageMembers() : section === "chat" ? manageChat() : manageRequests()];
-  }
-
-  // Only Lisa and Rebecca see this on the New page: the next thing to do after a study, and any name to confirm.
-  var ICON_CHAT = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5a7.5 7.5 0 0 1-11.1 6.6L4 20.5l1.4-4.6A7.5 7.5 0 1 1 20 12.5z"/><path d="M8.5 11h7M8.5 14.5h4.5"/></svg>';
-  function leaderStrip() {
-    if (DATA.role !== "manager") return null;
-    return h("section", { class: "leader-strip", "aria-label": "For group leaders" },
-      h("a", { class: "leader-card", href: "#manage-chat", id: "leader-chat" },
-        h("span", { class: "leader-icon", html: ICON_CHAT }),
-        h("span", { class: "leader-text" },
-          h("strong", { text: "Add prayer requests" }),
-          h("span", { text: "Paste the Zoom chat or type them in. Each one goes under the right name." })),
-        h("span", { class: "chev", "aria-hidden": "true", text: "\u203A" })));
   }
 
   function manageRequests() {
