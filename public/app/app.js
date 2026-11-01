@@ -852,7 +852,7 @@ function startApp(DATA) {
     if (DATA.role !== "manager") return todayPage();
     var section = page === "manage-members" ? "members" : page === "manage-chat" ? "chat" : "requests";
     var all = DATA.all || [];
-    var waiting = (DATA.inbox || []).filter(function (c) { return c.status === "Needs a look"; }).length;
+    var waiting = 0;
     var sections = [
       ["requests", "#manage", "Requests", all.filter(function (it) { return !it.archived; }).length],
       ["members", "#manage-members", "Members", (DATA.memberRows || []).length],
@@ -863,7 +863,6 @@ function startApp(DATA) {
     }));
     return [
       header("Manage", "", "none"),
-      nameQuestions(),
       seg,
       section === "members" ? manageMembers() : section === "chat" ? manageChat() : manageRequests()];
   }
@@ -873,35 +872,12 @@ function startApp(DATA) {
   function leaderStrip() {
     if (DATA.role !== "manager") return null;
     return h("section", { class: "leader-strip", "aria-label": "For Lisa and Rebecca" },
-      nameQuestions(),
       h("a", { class: "leader-card", href: "#manage-chat", id: "leader-chat" },
         h("span", { class: "leader-icon", html: ICON_CHAT }),
         h("span", { class: "leader-text" },
           h("strong", { text: "Add requests from the Zoom chat" }),
           h("span", { text: "Paste the chat and each request goes under the right name." })),
         h("span", { class: "chev", "aria-hidden": "true", text: "\u203A" })));
-  }
-
-  // When the chat said just "Carol" and there are two Carols, ask here with one tap per name.
-  function nameQuestions() {
-    var open = (DATA.all || []).filter(function (it) { return !it.archived && it.choices && it.choices.length; });
-    if (!open.length) return null;
-    return h("section", { class: "name-qs", "aria-labelledby": "nq-title" },
-      h("h2", { class: "nq-title", id: "nq-title", text: open.length === 1 ? "One name to confirm" : open.length + " names to confirm" }),
-      h("ul", { class: "nq-list" }, open.map(function (it) {
-        return h("li", { class: "nq-card" },
-          h("p", { class: "nq-ask", text: "Which " + it.name + " is this?" }),
-          h("p", { class: "nq-text", text: "\u201C" + it.text + "\u201D" }),
-          h("div", { class: "nq-choices", role: "group", "aria-label": "Which " + it.name + " is this?" },
-            it.choices.map(function (name) {
-              return h("button", { type: "button", class: "btn nq-pick", onclick: function () {
-                manage({ action: "pick-name", id: it.id, name: name }, "Thanks. It\u2019s now under " + name + (/\.$/.test(name) ? "" : ".") );
-              } }, name);
-            }),
-            h("button", { type: "button", class: "linklike", onclick: function () {
-              ui.mFilter = "list"; ui.mEdit = it.id; navigate("manage");
-            } }, "Someone else")));
-      })));
   }
 
   function manageRequests() {
@@ -1050,21 +1026,8 @@ function startApp(DATA) {
       });
     });
     var inbox = DATA.inbox;
-    // Adding is automatic, so the only thing worth showing is a chat where a name needs a person's decision.
-    var toCheck = (inbox || []).filter(function (c) { return c.status === "Needs a look"; });
     return h("section", { class: "top", "aria-label": "Add from chat" },
       inbox === null ? h("p", { class: "empty-note", text: "The Chat Inbox is not connected yet. In Notion, connect the \u201CGroup 3 Chat Inbox\u201D list to the prayer app." }) : null,
-      toCheck.length ? h("section", { class: "check-list", "aria-labelledby": "check-title" },
-        h("h2", { class: "section-title", id: "check-title", text: "Please check" }),
-        h("p", { class: "hint", text: "Fix the name in Requests with the pencil button, then tap Done." }),
-        h("ul", { class: "manage-list" }, toCheck.map(function (c) {
-          return h("li", { class: "m-row chat-row" },
-            h("p", { class: "m-note", text: c.note || "Part of this chat could not be added." }),
-            h("p", { class: "m-date", text: "Pasted " + new Date(c.pastedAt).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) }),
-            h("div", { class: "check-actions" },
-              h("a", { class: "btn", href: "#manage" }, "Go to Requests"),
-              h("button", { type: "button", class: "btn primary", onclick: function () { manage({ action: "chat-done", id: c.id }, "Thanks. That\u2019s done."); } }, "Done")));
-        }))) : null,
       form);
   }
 
