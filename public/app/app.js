@@ -65,6 +65,9 @@ function startApp(DATA) {
       p.isNew = p.open.some(isNewItem);
       bySlug[p.slug] = p;
     });
+    everyone.sort(function (a, b) {
+      return (b.isNew - a.isNew) || (b.open.length - a.open.length) || a.name.localeCompare(b.name);
+    });
     praiseItems = DATA.items.filter(function (it) { return !it.removed && (it.kind === "praise" || it.answered); })
       .sort(function (a, b) { return (b.answered || b.added).localeCompare(a.answered || a.added); });
     today = everyone.filter(function (p) { return p.isNew; });
@@ -121,7 +124,7 @@ function startApp(DATA) {
   var ICON_PEOPLE = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.2c2.9.2 5 2.3 5 5.3"/></svg>';
 
   var TABS = [
-    { key: "today", label: "New", icon: ICON_TODAY, count: today.length, countLabel: " new" },
+    { key: "today", label: "New Requests", icon: ICON_TODAY, count: today.length, countLabel: " new" },
     { key: "everyone", label: "Members", icon: ICON_PEOPLE, count: 0 },
     { key: "praise", label: "Praise Reports", icon: STAR, count: 0 },
   ];
@@ -206,7 +209,7 @@ function startApp(DATA) {
   function everyonePage() {
     return [
       sampleNote(),
-      header("Members", plural(everyone.length, "member", "members") + " \u00B7 A to Z"),
+      header("Members", plural(everyone.length, "member", "members") + " \u00B7 New requests first"),
       h("p", { class: "members-hint" },
         h("span", { class: "lead-text", text: "Tap a name to see their prayer requests." }),
         latest && today.length ? [" ", h("span", { class: "badge", text: "New" }), " means the request was just added."] : null),
@@ -794,7 +797,7 @@ function startApp(DATA) {
   function tip(el, text) { if (el && !el.getAttribute("title")) el.setAttribute("title", text); }
   function addTips() {
     tip(document.getElementById("nav-today"), "See the newest prayer requests");
-    tip(document.getElementById("nav-everyone"), "See all members, A to Z");
+    tip(document.getElementById("nav-everyone"), "See all members and their prayer requests");
     tip(document.getElementById("nav-praise"), "See answered prayers and praise reports");
     document.querySelectorAll(".row-link, .tile").forEach(function (a) {
       var n = a.querySelector(".row-name, .tile-name"); if (n) tip(a, "Open " + n.textContent + "’s prayer requests");
@@ -809,7 +812,7 @@ function startApp(DATA) {
     document.querySelectorAll(".pager .next").forEach(function (a) { var s = a.querySelector("small"); tip(a, "Go to the next person" + (s ? ": " + s.textContent : "")); });
     document.querySelectorAll(".pager a[aria-label]").forEach(function (a) { tip(a, "Go to the " + a.getAttribute("aria-label").toLowerCase()); });
     document.querySelectorAll(".answer-box a").forEach(function (a) { tip(a, "Choose a prayer that was answered or is no longer needed"); });
-    document.querySelectorAll('.btn[href="#everyone"]').forEach(function (a) { tip(a, "See all members, A to Z"); });
+    document.querySelectorAll('.btn[href="#everyone"]').forEach(function (a) { tip(a, "See all members and their prayer requests"); });
     document.querySelectorAll(".skip").forEach(function (a) { tip(a, "Jump past the menu to the page itself"); });
     document.querySelectorAll("a, button, select, input, textarea").forEach(function (el) {
       if (el.getAttribute("title")) return;
@@ -1038,8 +1041,10 @@ function startApp(DATA) {
   var BASE = "/" + encodeURIComponent(GROUP_KEY);
   var KEY_TO_PATH = { today: "", everyone: "members", praise: "praise-reports", add: "add-prayer", update: "answered-prayer",
     "praise-add": "share-praise", manage: "manage/prayer-requests", "manage-members": "manage/members", "manage-chat": "manage/zoom-chat" };
+  var MANAGER = DATA.role === "manager";
   function pathFor(key) {
     var m;
+    if (key === "today" && MANAGER) return BASE + "/new-requests";
     if (KEY_TO_PATH[key] !== undefined) return BASE + (KEY_TO_PATH[key] ? "/" + KEY_TO_PATH[key] : "");
     if ((m = /^p-(.+)$/.exec(key))) return BASE + "/members/" + m[1];
     if ((m = /^praise-(\d{4}-\d{2})$/.exec(key))) return BASE + "/praise-reports/" + m[1];
@@ -1049,7 +1054,8 @@ function startApp(DATA) {
   function currentKey() {
     var rest = location.pathname.split("/").slice(2).filter(Boolean).map(decodeURIComponent);
     var a = rest[0] || "", b = rest[1] || "";
-    if (!a || a === "new") return "today";
+    if (!a) return MANAGER ? "manage-chat" : "today";
+    if (a === "new" || a === "new-requests") return "today";
     if (a === "members") return b ? "p-" + b : "everyone";
     if (a === "praise-reports") return /^\d{4}-\d{2}$/.test(b) ? "praise-" + b : "praise";
     if (a === "manage") return b === "members" ? "manage-members" : b === "zoom-chat" ? "manage-chat" : "manage";
