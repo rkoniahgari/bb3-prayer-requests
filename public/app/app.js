@@ -126,7 +126,7 @@ function startApp(DATA) {
     { key: "praise", label: "Praise Reports", icon: STAR, count: 0 },
   ];
   var ICON_GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
-  if (DATA.role === "manager") TABS.push({ key: "manage", label: "Manage", icon: ICON_GEAR, count: 0 });
+  if (DATA.role === "manager") TABS.unshift({ key: "manage", href: "#manage-chat", label: "Manage", icon: ICON_GEAR, count: 0 });
   var LIST_NAMES = { today: "New prayer requests", everyone: "Members", praise: "Praise reports", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share a praise report", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Zoom chat" };
 
   // Always-visible navigation: a bar along the bottom on phones, a sidebar on big screens.
@@ -136,7 +136,7 @@ function startApp(DATA) {
       h("div", null, h("strong", { text: "Prayer Requests" }), h("span", { text: "Bible & Breakfast" }), h("span", { text: "Group 3" }))),
     h("p", { class: "side-label", text: "Pages" }),
     h("ul", { style: "--tabs:" + TABS.length }, TABS.map(function (t) {
-    return h("li", null, h("a", { class: "tabbar-link", href: "#" + t.key, id: "nav-" + t.key },
+    return h("li", null, h("a", { class: "tabbar-link", href: t.href || "#" + t.key, id: "nav-" + t.key },
       h("span", { class: "tab-icon", html: t.icon }),
       h("span", { class: "tab-label", text: t.label }),
       t.count ? h("span", { class: "tab-badge" }, String(t.count), h("span", { class: "sr", text: t.countLabel })) : null));
@@ -381,7 +381,7 @@ function startApp(DATA) {
     var otherErr = h("p", { class: "error", id: id + "-other-err", hidden: true, text: "Please type the name." });
     var otherWrap = h("div", { class: "field sub-field", hidden: true }, fieldLabel(id + "-other", "Type the name", true), other, otherErr);
     var err = h("p", { class: "error", id: id + "-err", hidden: true, text: "Please choose a name from the list." });
-    var start = preset || remembered();
+    var start = preset || "";
     if (start && names.indexOf(start) < 0) { sel.value = "__other"; other.value = start; otherWrap.hidden = false; }
     else sel.value = start || "";
     sel.addEventListener("change", function () {
@@ -453,7 +453,6 @@ function startApp(DATA) {
       h("div", { class: "field" }, fieldLabel("f-name", "Whose prayer request is this?", true),
         helpText("f-name-help", "Choose the name it should appear under."), who.el),
       h("div", { class: "field" }, h("label", { for: "f-text" }, labelWords, " ", need(true)),
-        helpText("f-text-help", "One or two sentences is plenty."),
         tb.restored, tb.el, tb.count, textErr),
       submit,
       h("a", { class: "btn wide-btn", href: "#" + (ui.lastList || "today"), title: "Leave without sharing. What you wrote is kept for next time." }, "Cancel"));
@@ -548,7 +547,7 @@ function startApp(DATA) {
     var tb = textBox("u-note", "update", "For example: The surgery went well and she is home.", "u-note-help");
     var noteField = h("div", { class: "field", hidden: choice !== "answered" },
       fieldLabel("u-note", "Would you like to share what happened?", false),
-      helpText("u-note-help", "It is shown with the prayer on Praise Reports. Please leave out medical details."), tb.restored, tb.el, tb.count,
+      helpText("u-note-help", "It is shown with the prayer on Praise Reports. Please leave out sensitive details, like full names, medical information or phone numbers."), tb.restored, tb.el, tb.count,
       h("p", { class: "error", id: "u-note-err", hidden: true }));
     var submit = h("button", { type: "submit", class: "btn primary wide-btn raised" });
     function submitText() {
@@ -837,9 +836,9 @@ function startApp(DATA) {
     var all = DATA.all || [];
     var waiting = 0;
     var sections = [
+      ["chat", "#manage-chat", "Zoom chat", waiting],
       ["requests", "#manage", "Requests", all.filter(function (it) { return !it.archived; }).length],
-      ["members", "#manage-members", "Members", (DATA.memberRows || []).length],
-      ["chat", "#manage-chat", "Zoom chat", waiting]];
+      ["members", "#manage-members", "Members", (DATA.memberRows || []).length]];
     var seg = h("nav", { class: "seg", "aria-label": "Manage sections" }, sections.map(function (x) {
       return h("a", { class: "seg-btn", href: x[1], "aria-current": section === x[0] ? "page" : null },
         h("span", { text: x[2] }), x[3] ? h("span", { class: "seg-count", text: String(x[3]) }) : null);
@@ -978,8 +977,7 @@ function startApp(DATA) {
   }
 
   function manageChat() {
-    var box = h("textarea", { id: "mc-text", class: "input paste-box", rows: "10", "aria-required": "true", "aria-describedby": "mc-err",
-      placeholder: "Paste the prayer requests from the Zoom chat here." });
+    var box = h("textarea", { id: "mc-text", class: "input paste-box", rows: "10", "aria-required": "true", "aria-describedby": "mc-err" });
     var saved = draft("mchat");
     box.value = saved;
     box.addEventListener("input", function () { draft("mchat", box.value); });
