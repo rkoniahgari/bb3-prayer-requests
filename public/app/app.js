@@ -116,8 +116,8 @@ function startApp(DATA) {
     if (e.key === "Escape" && ui.sizeOpen) { ui.sizeOpen = false; route(true); var b = document.getElementById("aa-btn"); if (b) b.focus(); }
   });
   function addButton(forName) {
-    return h("a", { class: "add-btn", href: "#add", onclick: function () { ui.addFor = forName || null; ui.added = null; } },
-      h("span", { class: "add-icon", "aria-hidden": "true", text: "+" }), h("span", { text: forName ? "Add a request for " + firstName(forName) : "Ask for prayer" }));
+    return h("a", { class: "add-btn", href: "#add", title: forName ? "Add a new prayer request for " + forName : "Ask the group to pray for something", onclick: function () { ui.addFor = forName || null; ui.added = null; } },
+      h("span", { class: "add-icon", "aria-hidden": "true", text: "+" }), h("span", { text: forName ? "Add a request" : "Ask for prayer" }));
   }
   var PLUS = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
   var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
@@ -273,7 +273,7 @@ function startApp(DATA) {
       empty: function () { return "No prayer requests under that name. Check the spelling, or clear the search to see all requests."; } });
   }
 
-  function reqCard(it, showName, canUpdate) {
+  function reqCard(it, showName, canUpdate, owner) {
     var answered = !!it.answered || it.kind === "praise";
     var isNew = !answered && isNewItem(it);
     var meta = [];
@@ -293,7 +293,12 @@ function startApp(DATA) {
       showName ? h("p", { class: "req-name", text: it.name }) : null,
       h("p", { class: "req-text", text: it.text }),
       it.note ? h("p", { class: "req-note", text: it.note }) : null,
-      h("div", { class: "meta" }, meta));
+      h("div", { class: "meta" }, meta),
+      owner && !answered ? h("div", { class: "req-actions" },
+        h("a", { class: "btn mark-btn", href: "#update", title: "Mark this request as answered or no longer needed",
+            "aria-label": "Mark as answered: " + it.text,
+            onclick: function () { ui.updatingPerson = owner; ui.updateOne = it; ui.updatingSet = [it]; ui.updated = null; ui.updateChoice = null; } },
+          h("span", { class: "mark-icon", html: STAR }), "Mark as answered")) : null);
   }
 
   function personPage(p) {
@@ -302,28 +307,17 @@ function startApp(DATA) {
     var first = firstName(p.name);
     return [
       h("div", { class: "topbar" },
-        h("a", { class: "btn", href: "#" + (list === today ? "today" : "everyone") }, "‹ Back to " + (list === today ? "New Prayer Requests" : "All Requests"))),
+        h("a", { class: "btn", href: "#" + (list === today ? "today" : "everyone"), "aria-label": "Back to " + (list === today ? "New Prayer Requests" : "All Requests") },
+          "‹ " + (list === today ? "New Requests" : "All Requests")),
+        addButton(p.name)),
       h("div", { class: "who" + (p.isNew ? " is-new" : "") },
         h("span", { class: "avatar", "aria-hidden": "true", text: initials(p.name) }),
         h("div", null, h("h1", { id: "page-title", tabindex: "-1", text: p.name }),
           h("p", { text: p.open.length ? plural(p.open.length, "prayer request", "prayer requests") : "No prayer requests yet" }))),
       h("section", { class: "top", "aria-labelledby": "pray-title" },
         h("h2", { class: "section-title", id: "pray-title", text: p.open.length ? "Please pray for" : "Prayer requests" }),
-        p.open.length ? h("ul", { class: "cards" }, p.open.map(function (it) { return reqCard(it); }))
+        p.open.length ? h("ul", { class: "cards" }, p.open.map(function (it) { return reqCard(it, false, false, p); }))
           : h("p", { class: "empty-note", text: "No prayer requests right now." })),
-      // One quiet card with both things a person can do here.
-      h("nav", { class: "actions-card", "aria-labelledby": "act-title" },
-        h("p", { class: "actions-title", id: "act-title", text: "Update " + first + "’s prayer list" }),
-        p.open.length ? h("a", { class: "action-row", href: "#update", title: "Choose a prayer that was answered or is no longer needed",
-            onclick: function () { ui.updatingPerson = p; ui.updatingSet = null; ui.updated = null; ui.updateChoice = null; } },
-          h("span", { class: "action-icon star", html: STAR }),
-          h("span", { class: "action-label", text: "Mark a request as answered" }),
-          h("span", { class: "chev", "aria-hidden": "true", text: "›" })) : null,
-        h("a", { class: "action-row", href: "#add", title: "Add a new prayer request for " + p.name,
-            onclick: function () { ui.addFor = p.name; ui.added = null; } },
-          h("span", { class: "action-icon plus", html: PLUS }),
-          h("span", { class: "action-label", text: "Add a request for " + first }),
-          h("span", { class: "chev", "aria-hidden": "true", text: "›" }))),
       p.answered.length || p.praise.length ? h("section", { class: "top", "aria-labelledby": "ans-title" },
         h("h2", { class: "section-title", id: "ans-title", text: "Answered prayers" }),
         h("ul", { class: "cards" }, p.answered.concat(p.praise).map(function (it) { return reqCard(it); }))) : null,
@@ -549,8 +543,9 @@ function startApp(DATA) {
     var p = ui.updatingPerson && people[ui.updatingPerson.name];
     if (!p || !p.open.length) return todayPage();
     // Several prayers can be marked at once.
-    var chosen = (ui.updatingSet || []).filter(function (it) { return p.open.indexOf(it) >= 0; });
-    if (!chosen.length && p.open.length === 1) chosen = [p.open[0]];
+    var pool = ui.updateOne && p.open.indexOf(ui.updateOne) >= 0 ? [ui.updateOne] : p.open;
+    var chosen = (ui.updatingSet || []).filter(function (it) { return pool.indexOf(it) >= 0; });
+    if (!chosen.length && pool.length === 1) chosen = [pool[0]];
     ui.updatingSet = chosen;
     var choice = ui.updateChoice || "answered";
     var tb = textBox("u-note", "update", "For example: The surgery went well and she is home.", "u-note-help");
@@ -570,7 +565,7 @@ function startApp(DATA) {
       }
     }
     var pickErr = h("p", { class: "error", id: "u-pick-err", hidden: true, text: "Please choose at least one prayer request." });
-    var pickList = h("div", { class: "choices" }, p.open.map(function (it, i) {
+    var pickList = h("div", { class: "choices" }, pool.map(function (it, i) {
       var input = h("input", { type: "checkbox", name: "which", id: "w-" + i, "aria-describedby": "u-pick-help u-pick-err" });
       input.checked = chosen.indexOf(it) >= 0;
       input.addEventListener("change", function () {
@@ -590,8 +585,11 @@ function startApp(DATA) {
       return h("label", { class: "choice", for: "u-" + value, title: title }, input,
         h("span", { class: "choice-text" }, h("strong", { text: title }), h("span", { text: sub })));
     }
-    var many = p.open.length > 1;
+    var many = pool.length > 1;
     var form = h("form", { class: "form", novalidate: true },
+      ui.updateOne && pool.length === 1 ? h("div", { class: "field" },
+        h("p", { class: "one-label", text: "Prayer request" }),
+        h("div", { class: "one-req" }, h("strong", { text: pool[0].text }), h("span", { text: "Asked " + fmt(pool[0].added) }))) :
       h("fieldset", { class: "field", id: "u-pick" },
         fieldLegend(many ? "1. Which prayer requests?" : "This prayer request", true),
         many ? helpText("u-pick-help", "Choose all that apply. You can tick more than one.") : null,
@@ -626,7 +624,7 @@ function startApp(DATA) {
       h("div", { class: "topbar" }, h("a", { class: "btn", href: "#" + p.slug }, "‹ Back to " + firstName(p.name))),
       h("div", null,
         h("h1", { class: "page-h1", id: "page-title", tabindex: "-1", text: "Update a Prayer Request" }),
-        h("p", { class: "hint", text: "Change " + firstName(p.name) + "’s prayer requests. You can undo this on the next screen." })),
+        h("p", { class: "hint", text: "Change " + firstName(p.name) + "’s prayer " + (pool.length === 1 ? "request" : "requests") + ". You can undo this on the next screen." })),
       form];
   }
   function updatedView(u) {
