@@ -47,7 +47,7 @@ export default safe(async (request, context) => {
 
   if (action === "paste") {
     const chat = String(body.chat || "").replace(/\r\n/g, "\n").trim().slice(0, 40000);
-    if (!chat) return json({ error: "Please paste the chat first." }, 400);
+    if (!chat) return json({ error: "Please paste or type the prayer requests first." }, 400);
     const now = new Date().toISOString();
     const row = await notion("/pages", "POST", {
       parent: { database_id: INBOX_DB },
@@ -59,7 +59,7 @@ export default safe(async (request, context) => {
         "Pasted at": { date: { start: now } },
       },
     });
-    later(context, logChange("manager", "Chat pasted", { summary: "Zoom chat pasted (see Group 3 Chat Inbox)", id: row.id }));
+    later(context, logChange("manager", "Chat pasted", { summary: "Prayer requests pasted (see Group 3 Chat Inbox)", id: row.id }));
     const sorting = await startSorting(row.id);
     if (sorting) {
       await notion(`/pages/${row.id}`, "PATCH", { properties: { Note: { rich_text: text("Adding to the prayer list now. This takes a few minutes.") } } }).catch(() => {});

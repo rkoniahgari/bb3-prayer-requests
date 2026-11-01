@@ -32,7 +32,7 @@ export const config = {
 const MEMBER_TITLE = "Bible &amp; Breakfast, Group 3 · Prayer Requests";
 const MEMBER_TEXT = "Prayer requests and answered prayers for Bible &amp; Breakfast, Group 3. Private to our group.";
 const MANAGER_TITLE = "Manage · Bible &amp; Breakfast, Group 3 Prayer Requests";
-const MANAGER_TEXT = "Add prayer requests from the Zoom chat, keep the member list up to date, and look after the group\u2019s prayer list. Please don\u2019t share this link.";
+const MANAGER_TEXT = "Add prayer requests from the Zoom chat or notes, keep the member list up to date, and look after the group\u2019s prayer list. Please don\u2019t share this link.";
 async function managerPage(request) {
   const page = await fetch(new URL("/app/index.html", request.url));
   if (!page.ok) return new URL("/app/index.html", request.url);

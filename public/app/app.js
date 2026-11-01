@@ -131,7 +131,7 @@ function startApp(DATA) {
   ];
   var ICON_GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   if (DATA.role === "manager") TABS.unshift({ key: "manage", href: "#manage-chat", label: "Manage", icon: ICON_GEAR, count: 0 });
-  var LIST_NAMES = { today: "New prayer requests", everyone: "All requests", praise: "Answered prayers", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share an answered prayer", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Zoom chat" };
+  var LIST_NAMES = { today: "New prayer requests", everyone: "All requests", praise: "Answered prayers", add: "Add a prayer request", update: "Update a prayer request", "praise-add": "Share an answered prayer", manage: "Manage", "manage-members": "Manage members", "manage-chat": "Add requests" };
 
   // Always-visible navigation: a bar along the bottom on phones, a sidebar on big screens.
   var tabbar = h("nav", { class: "tabbar", "aria-label": "Main" },
@@ -845,7 +845,7 @@ function startApp(DATA) {
     var all = DATA.all || [];
     var waiting = 0;
     var sections = [
-      ["chat", "#manage-chat", "Zoom chat", waiting],
+      ["chat", "#manage-chat", "Add requests", waiting],
       ["requests", "#manage", "Requests", all.filter(function (it) { return !it.archived; }).length],
       ["members", "#manage-members", "Members", (DATA.memberRows || []).length]];
     var seg = h("nav", { class: "seg", "aria-label": "Manage sections" }, sections.map(function (x) {
@@ -862,12 +862,12 @@ function startApp(DATA) {
   var ICON_CHAT = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5a7.5 7.5 0 0 1-11.1 6.6L4 20.5l1.4-4.6A7.5 7.5 0 1 1 20 12.5z"/><path d="M8.5 11h7M8.5 14.5h4.5"/></svg>';
   function leaderStrip() {
     if (DATA.role !== "manager") return null;
-    return h("section", { class: "leader-strip", "aria-label": "For Lisa and Rebecca" },
+    return h("section", { class: "leader-strip", "aria-label": "For group leaders" },
       h("a", { class: "leader-card", href: "#manage-chat", id: "leader-chat" },
         h("span", { class: "leader-icon", html: ICON_CHAT }),
         h("span", { class: "leader-text" },
-          h("strong", { text: "Add requests from the Zoom chat" }),
-          h("span", { text: "Paste the chat and each request goes under the right name." })),
+          h("strong", { text: "Add prayer requests" }),
+          h("span", { text: "Paste the Zoom chat or type them in. Each one goes under the right name." })),
         h("span", { class: "chev", "aria-hidden": "true", text: "\u203A" })));
   }
 
@@ -986,14 +986,15 @@ function startApp(DATA) {
   }
 
   function manageChat() {
-    var box = h("textarea", { id: "mc-text", class: "input paste-box", rows: "10", "aria-required": "true", "aria-describedby": "mc-err" });
+    var box = h("textarea", { id: "mc-text", class: "input paste-box", rows: "10", "aria-required": "true", "aria-describedby": "mc-help mc-err" });
     var saved = draft("mchat");
     box.value = saved;
     box.addEventListener("input", function () { draft("mchat", box.value); });
-    var err = h("p", { class: "error", id: "mc-err", hidden: true, text: "Please paste the chat first." });
+    var err = h("p", { class: "error", id: "mc-err", hidden: true, text: "Please paste or type the prayer requests first." });
     var submit = h("button", { type: "submit", class: "btn primary wide-btn raised", title: "Add these requests to the prayer list" }, "Add to the prayer list");
     var form = h("form", { class: "form", novalidate: true },
-      h("div", { class: "field" }, h("label", { for: "mc-text" }, "Paste the prayer requests from the Zoom chat here."),
+      h("div", { class: "field" }, h("label", { for: "mc-text" }, "Paste or type the prayer requests here."),
+        helpText("mc-help", "From the Zoom chat, written notes or a list. It doesn\u2019t need to be neat."),
         saved ? h("p", { class: "restored", text: "We kept what you pasted last time." }) : null, box, err),
       submit);
     form.addEventListener("submit", function (e) {
@@ -1017,7 +1018,7 @@ function startApp(DATA) {
       });
     });
     var inbox = DATA.inbox;
-    return h("section", { class: "top", "aria-label": "Zoom chat" },
+    return h("section", { class: "top", "aria-label": "Add requests" },
       inbox === null ? h("p", { class: "empty-note", text: "The Chat Inbox is not connected yet. In Notion, connect the \u201CGroup 3 Chat Inbox\u201D list to the prayer app." }) : null,
       form);
   }
@@ -1046,7 +1047,7 @@ function startApp(DATA) {
   // Screens keep their short internal names; these two functions translate to and from the address.
   var BASE = "/" + encodeURIComponent(GROUP_KEY);
   var KEY_TO_PATH = { today: "", everyone: "all-requests", praise: "answered-prayers", add: "add-prayer", update: "answered-prayer",
-    "praise-add": "share-answered-prayer", manage: "manage/prayer-requests", "manage-members": "manage/members", "manage-chat": "manage/zoom-chat" };
+    "praise-add": "share-answered-prayer", manage: "manage/prayer-requests", "manage-members": "manage/members", "manage-chat": "manage/add-requests" };
   var MANAGER = DATA.role === "manager";
   function pathFor(key) {
     var m;
@@ -1066,7 +1067,7 @@ function startApp(DATA) {
     if (a === "members") return b ? "p-" + b : "everyone";
     if (a === "share-praise") return "praise-add";
     if (a === "praise-reports" || a === "answered-prayers") return /^\d{4}-\d{2}$/.test(b) ? "praise-" + b : "praise";
-    if (a === "manage") return b === "members" ? "manage-members" : b === "zoom-chat" ? "manage-chat" : "manage";
+    if (a === "manage") return b === "members" ? "manage-members" : b === "add-requests" || b === "zoom-chat" ? "manage-chat" : "manage";
     for (var k in KEY_TO_PATH) if (KEY_TO_PATH[k] === a) return k;
     return "today";
   }

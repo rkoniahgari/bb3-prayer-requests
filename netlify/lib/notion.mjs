@@ -202,5 +202,5 @@ export async function tooFast(who, group) {
   }).length;
   if (count < limit) return null;
   await logChange(who, "Blocked", { summary: `Stopped: more than ${limit} changes in an hour` });
-  return json({ error: "That's a lot of changes at once, so the page has paused them for an hour. If this was you, please try again later or ask Rebecca." }, 429);
+  return json({ error: "That's a lot of changes at once, so changes are paused for an hour. Please try again after that." }, 429);
 }
