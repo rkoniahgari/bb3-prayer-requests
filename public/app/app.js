@@ -70,7 +70,8 @@ function startApp(DATA) {
     });
     praiseItems = DATA.items.filter(function (it) { return !it.removed && (it.kind === "praise" || it.answered); })
       .sort(function (a, b) { return (b.answered || b.added).localeCompare(a.answered || a.added); });
-    today = everyone.filter(function (p) { return p.isNew; });
+    // New Prayer Requests reads A to Z; the Members page keeps "new first, then most requests".
+    today = everyone.filter(function (p) { return p.isNew; }).sort(function (a, b) { return a.name.localeCompare(b.name); });
     isToday = latest === todayISO();
   }
   function isNewItem(it) { return it.kind === "request" && !it.answered && it.added >= latest; }
