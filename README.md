@@ -85,7 +85,7 @@ Members then need the new link (and to re-add the home-screen icon).
 - **Nothing is ever deleted.** "Remove" only sets Status to *Archived*; removing a member only unticks *Active*. Everything can be brought back from Manage → Removed, or in Notion.
 - **Activity log.** Every change from the page is written to the Notion database **Group 3 Activity Log**: what happened, which link was used (member or manager), and the wording *before* and *after*. Use it to see who changed what and to put anything back.
 - **Speed limit.** In any one hour, the member link can remove at most 10 requests and add 30; the manager link can remove, hide or edit at most 40 and add 100. Past that, changes pause for an hour and a "Blocked" line appears in the log.
-- **Nightly backup.** A GitHub Action (`.github/workflows/backup.yml`) saves a full copy of all four databases every night, kept for 90 days under the repo's Actions tab → *Nightly backup* → a run → *Artifacts*. It needs the repository secret `NOTION_TOKEN`.
+- **Nightly backup.** A GitHub Action (`.github/workflows/backup.yml`) saves a full copy of all four databases every night, kept for 30 days (without the raw pasted chats) under the repo's Actions tab → *Nightly backup* → a run → *Artifacts*. It needs the repository secret `NOTION_TOKEN`.
 - **Notion's own history.** Each Notion page keeps its edit history, and Notion's trash keeps deleted pages for 30 days.
 
 ### If someone vandalizes the list
@@ -108,3 +108,13 @@ waiting for its Mon/Wed/Fri 12:23 pm run. Runs use your Claude plan, not a paid 
 
 The token stays on the server; the page never sees it. If it leaks, click **Regenerate** on the routine
 and paste the new one into Netlify. Without these two values, chats are simply sorted at the next scheduled run.
+
+## How long things are kept
+
+- **Prayer requests and members:** kept until someone removes them. Nothing below touches them.
+- **Pasted chats (Group 3 Chat Inbox) and the Activity Log:** 14 days. A Netlify scheduled function
+  (`netlify/functions/cleanup.mjs`) runs every night and moves older rows to Notion's trash, where Notion
+  deletes them for good after 30 days. A chat that is still waiting to be added is never removed.
+  Change the number of days with a `KEEP_DAYS` environment variable in Netlify.
+- **"Filed chats" on the Notion paste page:** the routine removes copies older than 14 days.
+- **Nightly backups:** 30 days, without the raw pasted chat text.

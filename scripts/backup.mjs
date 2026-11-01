@@ -24,8 +24,10 @@ async function queryAll(db) {
   return rows;
 }
 const out = { takenAt: new Date().toISOString() };
+// Raw pasted chats are not kept in backups: they can hold full names and private details.
+const dropChatText = (rows) => rows.map((r) => { const c = JSON.parse(JSON.stringify(r)); if (c.properties && c.properties.Chat) c.properties.Chat = { rich_text: [] }; return c; });
 for (const [name, id] of Object.entries(DBS)) {
-  try { out[name] = await queryAll(id); console.log(name, out[name].length, "rows"); }
+  try { out[name] = await queryAll(id); if (name === "inbox") out[name] = dropChatText(out[name]); console.log(name, out[name].length, "rows"); }
   catch (err) { out[name] = { error: err.message }; console.error(err.message); if (name === "requests") process.exitCode = 1; }
 }
 fs.mkdirSync("backup", { recursive: true });

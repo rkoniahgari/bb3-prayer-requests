@@ -1,5 +1,5 @@
 # Every night, save a full copy of the prayer list from Notion.
-# Copies are kept for 90 days under Actions → "Nightly backup" → a run → Artifacts.
+# Copies are kept for 30 days under Actions → "Nightly backup" → a run → Artifacts.
 # They are only visible to people with access to this (private) repository.
 name: Nightly backup
 on:
@@ -23,4 +23,4 @@ jobs:
         with:
           name: group3-backup
           path: backup/
-          retention-days: 90
+          retention-days: 30
