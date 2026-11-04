@@ -897,7 +897,8 @@ function startApp(DATA) {
     var who = it.name, what = "“" + shortText(it.text) + "”";
     var actions = it.archived
       ? [iconBtn(ICON_RESTORE, "Restore " + what + " from " + who, function () { manage({ action: "restore", id: it.id }, "Restored to the list."); })]
-      : [iconBtn(ICON_EDIT, "Edit " + what + " from " + who, function () { ui.mEdit = it.id; ui.mConfirm = null; route(true); }),
+      : [newToggle(it, what, who),
+         iconBtn(ICON_EDIT, "Edit " + what + " from " + who, function () { ui.mEdit = it.id; ui.mConfirm = null; route(true); }),
          iconBtn(it.hidden ? ICON_EYE : ICON_EYE_OFF, (it.hidden ? "Show " : "Hide ") + what + " from " + who, function () {
            manage({ action: it.hidden ? "show" : "hide", id: it.id }, it.hidden ? "It shows on the list again." : "Hidden. Find it under Hidden.");
          }),
@@ -918,16 +919,23 @@ function startApp(DATA) {
   }
 
   // Tag an older request "New" so it shows on New Requests until the next batch comes in.
-  function newControl(it) {
+  function newState(it) {
     if (it.archived || it.hidden || it.kind !== "request" || it.answered) return null;
-    var byDate = it.added >= latest, tagged = !byDate && it.markedNew && it.markedNew >= latest;
-    if (byDate) return h("p", { class: "m-new" }, h("span", { class: "badge", text: "New" }), h("span", { class: "m-new-note", text: " From the latest study" }));
-    if (tagged) return h("p", { class: "m-new" }, h("span", { class: "badge", text: "New" }),
-      h("button", { type: "button", class: "linklike m-new-btn", title: "Take it off New Requests",
-        onclick: function () { manage({ action: "unmark-new", id: it.id }, "Taken off New Requests."); } }, "Remove New"));
-    return h("p", { class: "m-new" }, h("button", { type: "button", class: "btn m-new-btn", title: "Show it on New Requests until the next batch comes in",
-        onclick: function () { manage({ action: "mark-new", id: it.id }, "Tagged New. It shows on New Requests."); } },
-      h("span", { "aria-hidden": "true", text: "+ " }), "Mark as new"));
+    if (it.added >= latest) return "batch";
+    return it.markedNew && it.markedNew >= latest ? "tagged" : "off";
+  }
+  // Under the text: only requests from the latest study get a note (they are new on their own).
+  function newControl(it) {
+    return newState(it) === "batch" ? h("p", { class: "m-new" }, h("span", { class: "badge", text: "New" }), h("span", { class: "m-new-note", text: " From the latest study" })) : null;
+  }
+  // In the button row: a square that reads "New". Yellow when it is on.
+  function newToggle(it, what, who) {
+    var st = newState(it);
+    if (st !== "off" && st !== "tagged") return null;
+    var on = st === "tagged";
+    var label = on ? "Take " + what + " from " + who + " off New Requests" : "Show " + what + " from " + who + " on New Requests";
+    return h("button", { type: "button", class: "icon-btn new-toggle" + (on ? " on" : ""), "aria-pressed": String(on), "aria-label": label, title: label,
+      onclick: function () { manage({ action: on ? "unmark-new" : "mark-new", id: it.id }, on ? "Taken off New Requests." : "Tagged New. It shows on New Requests until the next batch."); } }, "New");
   }
 
   function openAdd(name) {
