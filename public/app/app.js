@@ -38,7 +38,7 @@ function startApp(DATA) {
   // ---------- shape the data ----------
   // Requests added on this site (source "web") never move the study date; they count as new
   // until the next study's requests arrive.
-  var latest, people, everyone, bySlug, praiseItems, today, isToday;
+  var latest, newSince, people, everyone, bySlug, praiseItems, today, isToday;
   function prepare() {
     DATA.sample = false;
     DATA.updated = DATA.updated || todayISO();
@@ -48,6 +48,10 @@ function startApp(DATA) {
   function shape() {
     latest = DATA.items.filter(function (it) { return !it.removed && it.kind === "request" && !it.answered && it.source !== "web"; })
       .reduce(function (m, it) { return it.added > m ? it.added : m; }, "");
+    // New Requests shows what has arrived since the most recent study day began (Mon, Wed or Fri).
+    // On a study morning the last batch moves off New (it stays under each name) until today's arrives.
+    var study = lastStudyDay();
+    newSince = latest > study ? latest : study;
     people = {}; var order = [];
     DATA.items.forEach(function (it) {
       if (it.removed) return;
@@ -75,7 +79,14 @@ function startApp(DATA) {
     isToday = latest === todayISO();
   }
   // New = from the latest batch, or tagged "New" by a leader since then. Either way it drops off when the next batch comes in.
-  function isNewItem(it) { return it.kind === "request" && !it.answered && (it.added >= latest || !!(it.markedNew && it.markedNew >= latest)); }
+  function isNewItem(it) { return it.kind === "request" && !it.answered && (it.added >= newSince || !!(it.markedNew && it.markedNew >= newSince)); }
+  function lastStudyDay() {
+    var d = new Date();
+    for (var i = 0; i < 7 && [1, 3, 5].indexOf(d.getDay()) < 0; i++) d.setDate(d.getDate() - 1);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  // True between the start of a study day and the moment that study's requests are added.
+  function waitingForStudy() { return newSince > latest; }
   function todayISO() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
   function firstName(name) { return name.split(" ")[0]; }
   shape();
@@ -181,12 +192,16 @@ function startApp(DATA) {
   function todayPage() {
     return [
       sampleNote(),
-      header("New Prayer Requests", latest ? "Shared on " + fmt(latest, true) : "Shared at our Bible studies"),
+      header("New Prayer Requests", today.length || !waitingForStudy() ? (newSince ? "Shared on " + fmt(newSince, true) : "Shared at our Bible studies") : ""),
+      today.length && waitingForStudy() ? h("p", { class: "list-note waiting-note", text: "More of today\u2019s prayer requests will be added here after the study." }) : null,
       today.length ? h("section", { class: "top", "aria-label": "New prayer requests, " + plural(today.length, "person", "people") },
         h("p", { class: "hint lead", text: "Tap a name to read their prayer requests." }),
         todayRows()) :
-        h("div", { class: "empty" }, h("strong", { text: "No new prayer requests yet." }),
-          h("p", { text: "New requests appear here after each Bible study." }),
+        h("div", { class: "empty" }, waitingForStudy()
+          ? [h("strong", { text: "Today\u2019s prayer requests will be added here after the study." }),
+             h("p", { text: "Until then, everyone\u2019s requests are under All Requests." })]
+          : [h("strong", { text: "No new prayer requests yet." }),
+             h("p", { text: "New requests appear here after each Bible study." })],
           h("a", { class: "btn primary", href: "#everyone" }, "See all requests")),
       today.length ? h("a", { class: "btn wide-btn", href: "#everyone" }, "See all requests ›") : null,
       h("p", { class: "list-note", text: "New requests are added after each Monday, Wednesday and Friday study, and right away when someone asks for prayer here." }),
@@ -921,12 +936,12 @@ function startApp(DATA) {
   // Tag an older request "New" so it shows on New Requests until the next batch comes in.
   function newState(it) {
     if (it.archived || it.hidden || it.kind !== "request" || it.answered) return null;
-    if (it.added >= latest) return "batch";
-    return it.markedNew && it.markedNew >= latest ? "tagged" : "off";
+    if (it.added >= newSince) return "batch";
+    return it.markedNew && it.markedNew >= newSince ? "tagged" : "off";
   }
   // Under the text: only requests from the latest study get a note (they are new on their own).
   function newControl(it) {
-    return newState(it) === "batch" ? h("p", { class: "m-new" }, h("span", { class: "badge", text: "New" }), h("span", { class: "m-new-note", text: " From the latest study" })) : null;
+    return newState(it) === "batch" ? h("p", { class: "m-new" }, h("span", { class: "badge", text: "New" }), h("span", { class: "m-new-note", text: it.source === "web" ? " Added on the page" : " From the latest study" })) : null;
   }
   // In the button row: a square that reads "New". Yellow when it is on.
   function newToggle(it, what, who) {
