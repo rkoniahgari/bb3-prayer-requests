@@ -74,7 +74,8 @@ function startApp(DATA) {
     today = everyone.filter(function (p) { return p.isNew; }).sort(function (a, b) { return a.name.localeCompare(b.name); });
     isToday = latest === todayISO();
   }
-  function isNewItem(it) { return it.kind === "request" && !it.answered && it.added >= latest; }
+  // New = from the latest batch, or tagged "New" by a leader since then. Either way it drops off when the next batch comes in.
+  function isNewItem(it) { return it.kind === "request" && !it.answered && (it.added >= latest || !!(it.markedNew && it.markedNew >= latest)); }
   function todayISO() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
   function firstName(name) { return name.split(" ")[0]; }
   shape();
@@ -907,12 +908,26 @@ function startApp(DATA) {
         h("div", { class: "m-main" },
           h("p", { class: "m-name" }, it.name, h("span", { class: "m-date", text: " · " + fmt(it.answered || it.added) })),
           h("p", { class: "m-text", text: it.text }),
-          it.kind === "praise" || it.answered ? h("span", { class: "tag", text: it.kind === "praise" ? "Praise" : "Answered" }) : null),
+          it.kind === "praise" || it.answered ? h("span", { class: "tag", text: it.kind === "praise" ? "Answered prayer" : "Answered" }) : null,
+          newControl(it)),
         h("div", { class: "m-actions" }, actions)),
       ui.mConfirm === it.id ? h("div", { class: "m-confirm", role: "group", "aria-label": "Confirm removing" },
         h("span", { text: "Remove this request? You can restore it later." }),
         h("button", { type: "button", class: "btn primary", onclick: function () { ui.mConfirm = null; manage({ action: "archive", id: it.id }, "Removed. Find it under Removed."); } }, "Remove"),
         h("button", { type: "button", class: "btn", onclick: function () { ui.mConfirm = null; route(true); } }, "Cancel")) : null);
+  }
+
+  // Tag an older request "New" so it shows on New Requests until the next batch comes in.
+  function newControl(it) {
+    if (it.archived || it.hidden || it.kind !== "request" || it.answered) return null;
+    var byDate = it.added >= latest, tagged = !byDate && it.markedNew && it.markedNew >= latest;
+    if (byDate) return h("p", { class: "m-new" }, h("span", { class: "badge", text: "New" }), h("span", { class: "m-new-note", text: " From the latest study" }));
+    if (tagged) return h("p", { class: "m-new" }, h("span", { class: "badge", text: "New" }),
+      h("button", { type: "button", class: "linklike m-new-btn", title: "Take it off New Requests",
+        onclick: function () { manage({ action: "unmark-new", id: it.id }, "Taken off New Requests."); } }, "Remove New"));
+    return h("p", { class: "m-new" }, h("button", { type: "button", class: "btn m-new-btn", title: "Show it on New Requests until the next batch comes in",
+        onclick: function () { manage({ action: "mark-new", id: it.id }, "Tagged New. It shows on New Requests."); } },
+      h("span", { "aria-hidden": "true", text: "+ " }), "Mark as new"));
   }
 
   function openAdd(name) {

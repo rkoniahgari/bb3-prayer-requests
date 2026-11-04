@@ -1,5 +1,5 @@
 // Manager-only actions: fix or hide requests, and keep the member list up to date.
-import { MEMBERS_DB, INBOX_DB, isId, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem, safe, logChange, tooFast, describe, plain, later } from "../lib/notion.mjs";
+import { MEMBERS_DB, INBOX_DB, isId, todayET, notion, role, json, denied, readBody, clean, text, longText, requestRow, toItem, safe, logChange, tooFast, describe, plain, later } from "../lib/notion.mjs";
 
 const bare = (id) => String(id || "").replace(/-/g, "");
 
@@ -37,7 +37,7 @@ export default safe(async (request, context) => {
   if (role(request) !== "manager") return denied();
   const body = await readBody(request);
   const action = body.action;
-  const NAMES = { paste: "Chat pasted", "chat-done": "Chat checked", "member-add": "Member added", "member-remove": "Member removed", edit: "Edited", "pick-name": "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored" };
+  const NAMES = { paste: "Chat pasted", "chat-done": "Chat checked", "member-add": "Member added", "member-remove": "Member removed", edit: "Edited", "pick-name": "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored", "mark-new": "Edited", "unmark-new": "Edited" };
   if (!NAMES[action]) return json({ error: "Unknown action." }, 400);
   // Start the speed check now; request changes look up the row at the same time.
   const slowCheck = tooFast("manager", ["member-remove", "edit", "hide", "archive"].includes(action) ? "remove" : "add");
@@ -102,7 +102,7 @@ export default safe(async (request, context) => {
 });
 
 async function changeRequest(action, body, context, slowCheck) {
-  const NAMES = { edit: "Edited", "pick-name": "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored" };
+  const NAMES = { edit: "Edited", "pick-name": "Edited", "mark-new": "Edited", "unmark-new": "Edited", hide: "Hidden", show: "Shown", archive: "Removed", restore: "Restored" };
   const [row, slow] = await Promise.all([requestRow(body.id), slowCheck]);
   if (slow) return slow;
   if (!row) return json({ error: "That prayer request was not found." }, 404);
@@ -118,6 +118,9 @@ async function changeRequest(action, body, context, slowCheck) {
     const name = clean(body.name, 60);
     if (!offered.includes(name)) return json({ error: "Please choose one of the names shown." }, 400);
     properties = { Person: { rich_text: text(name) }, "Name options": { rich_text: [] } };
+  } else if (action === "mark-new" || action === "unmark-new") {
+    // A leader tagged an older request "New" (or took the tag off).
+    properties = { "Marked new": { date: action === "mark-new" ? { start: todayET() } : null } };
   } else if (action === "hide" || action === "show") {
     properties = { "Show on page": { checkbox: action === "show" } };
   } else if (action === "archive") {
