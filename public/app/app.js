@@ -204,7 +204,7 @@ function startApp(DATA) {
   function footer() { return null; }
 
   function todayPage() {
-    var good = praiseItems.filter(isNewPraise);
+    var good = praiseItems.filter(isNewPraise).slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
     var goodSection = good.length ? h("section", { class: "top", "aria-labelledby": "good-title" },
       h("h2", { class: "section-title", id: "good-title", text: "Praise Reports" }),
       h("ul", { class: "praise-list" }, good.map(praiseRow)),
