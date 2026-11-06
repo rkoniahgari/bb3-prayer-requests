@@ -80,6 +80,7 @@ function startApp(DATA) {
   }
   // New = from the latest batch, or tagged "New" by a leader since then. Either way it drops off when the next batch comes in.
   function isNewItem(it) { return it.kind === "request" && !it.answered && (it.added >= newSince || !!(it.markedNew && it.markedNew >= newSince)); }
+  function isNewPraise(it) { return !it.removed && (it.kind === "praise" || !!it.answered) && !!(it.markedNew && it.markedNew >= newSince); }
   function lastStudyDay() {
     var d = new Date();
     for (var i = 0; i < 7 && [1, 3, 5].indexOf(d.getDay()) < 0; i++) d.setDate(d.getDate() - 1);
@@ -190,6 +191,10 @@ function startApp(DATA) {
   function footer() { return null; }
 
   function todayPage() {
+    var good = praiseItems.filter(isNewPraise);
+    var goodSection = good.length ? h("section", { class: "top", "aria-labelledby": "good-title" },
+      h("h2", { class: "section-title", id: "good-title", text: "Answered prayers" }),
+      h("ul", { class: "praise-list" }, good.map(praiseRow))) : null;
     return [
       sampleNote(),
       header("New Prayer Requests", today.length || !waitingForStudy() ? (newSince ? "Shared on " + fmt(newSince, true) : "Shared at our Bible studies") : ""),
@@ -197,13 +202,15 @@ function startApp(DATA) {
       today.length ? h("section", { class: "top", "aria-label": "New prayer requests, " + plural(today.length, "person", "people") },
         h("p", { class: "hint lead", text: "Tap a name to read their prayer requests." }),
         todayRows()) :
+      good.length ? h("p", { class: "list-note", text: waitingForStudy() ? "Today\u2019s prayer requests will be added here after the study." : "No new prayer requests yet." }) :
         h("div", { class: "empty" }, waitingForStudy()
           ? [h("strong", { text: "Today\u2019s prayer requests will be added here after the study." }),
              h("p", { text: "Until then, everyone\u2019s requests are under All Requests." })]
           : [h("strong", { text: "No new prayer requests yet." }),
              h("p", { text: "New requests appear here after each Bible study." })],
           h("a", { class: "btn primary", href: "#everyone" }, "See all requests")),
-      today.length ? h("a", { class: "btn wide-btn", href: "#everyone" }, "See all requests ›") : null,
+      goodSection,
+      today.length || good.length ? h("a", { class: "btn wide-btn", href: "#everyone" }, "See all requests ›") : null,
       h("p", { class: "list-note", text: "New requests are added after each Monday, Wednesday and Friday study, and right away when someone asks for prayer here." }),
       footer()];
   }
@@ -935,7 +942,9 @@ function startApp(DATA) {
 
   // Tag an older request "New" so it shows on New Requests until the next batch comes in.
   function newState(it) {
-    if (it.archived || it.hidden || it.kind !== "request" || it.answered) return null;
+    if (it.archived || it.hidden) return null;
+    // Answered prayers can be tagged too, so New Requests has good news on days without requests.
+    if (it.kind === "praise" || it.answered) return it.markedNew && it.markedNew >= newSince ? "tagged" : "off";
     if (it.added >= newSince) return "batch";
     return it.markedNew && it.markedNew >= newSince ? "tagged" : "off";
   }
