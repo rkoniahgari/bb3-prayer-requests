@@ -88,6 +88,19 @@ function startApp(DATA) {
   }
   // True between the start of a study day and the moment that study's requests are added.
   function waitingForStudy() { return newSince > latest; }
+  // The study ends at 8:00 am Eastern; until 8:30 on a study day we say requests are on their way.
+  function studyStillOn() {
+    if (newSince !== todayISO()) return false;
+    var t = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date());
+    var hh = +t.filter(function (x) { return x.type === "hour"; })[0].value % 24, mm = +t.filter(function (x) { return x.type === "minute"; })[0].value;
+    return hh * 60 + mm < 8 * 60 + 30;
+  }
+  // Names the study ("Friday's study"), so it still reads right on the days after.
+  function waitingText() {
+    if (studyStillOn()) return "Today\u2019s prayer requests will be added here after the study.";
+    var day = new Date(newSince + "T12:00:00").toLocaleDateString("en-US", { weekday: "long" });
+    return "No new prayer requests from " + day + "\u2019s study. Please keep praying for the requests already shared.";
+  }
   function todayISO() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
   function firstName(name) { return name.split(" ")[0]; }
   shape();
@@ -198,14 +211,15 @@ function startApp(DATA) {
     return [
       sampleNote(),
       header("New Prayer Requests", today.length || !waitingForStudy() ? (newSince ? "Shared on " + fmt(newSince, true) : "Shared at our Bible studies") : ""),
-      today.length && waitingForStudy() ? h("p", { class: "list-note waiting-note", text: "More of today\u2019s prayer requests will be added here after the study." }) : null,
+      today.length && waitingForStudy() && studyStillOn() ? h("p", { class: "list-note waiting-note", text: "More of today\u2019s prayer requests will be added here after the study." }) : null,
       today.length ? h("section", { class: "top", "aria-label": "New prayer requests, " + plural(today.length, "person", "people") },
         h("p", { class: "hint lead", text: "Tap a name to read their prayer requests." }),
         todayRows()) :
-      good.length ? h("p", { class: "list-note", text: waitingForStudy() ? "Today\u2019s prayer requests will be added here after the study." : "No new prayer requests yet." }) :
+      good.length ? h("p", { class: "list-note quiet-note", text: waitingForStudy() ? waitingText() : "No new prayer requests yet." }) :
         h("div", { class: "empty" }, waitingForStudy()
-          ? [h("strong", { text: "Today\u2019s prayer requests will be added here after the study." }),
-             h("p", { text: "Until then, everyone\u2019s requests are under All Requests." })]
+          ? (studyStillOn()
+            ? [h("strong", { text: waitingText() }), h("p", { text: "Until then, everyone\u2019s requests are under All Requests." })]
+            : [h("p", { class: "quiet-note", text: waitingText() })])
           : [h("strong", { text: "No new prayer requests yet." }),
              h("p", { text: "New requests appear here after each Bible study." })],
           h("a", { class: "btn primary", href: "#everyone" }, "See all requests")),
