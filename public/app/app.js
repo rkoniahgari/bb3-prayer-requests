@@ -206,8 +206,9 @@ function startApp(DATA) {
   function todayPage() {
     var good = praiseItems.filter(isNewPraise);
     var goodSection = good.length ? h("section", { class: "top", "aria-labelledby": "good-title" },
-      h("h2", { class: "section-title", id: "good-title", text: "Answered prayers" }),
-      h("ul", { class: "praise-list" }, good.map(praiseRow))) : null;
+      h("h2", { class: "section-title", id: "good-title", text: "Praise Reports" }),
+      h("ul", { class: "praise-list" }, good.map(praiseRow)),
+      h("a", { class: "btn wide-btn", href: "#praise" }, "See all praise reports \u203A")) : null;
     return [
       sampleNote(),
       header("New Prayer Requests", today.length || !waitingForStudy() ? (newSince ? "Shared on " + fmt(newSince, true) : "Shared at our Bible studies") : ""),
@@ -223,8 +224,8 @@ function startApp(DATA) {
           : [h("strong", { text: "No new prayer requests yet." }),
              h("p", { text: "New requests appear here after each Bible study." })],
           h("a", { class: "btn primary", href: "#everyone" }, "See all requests")),
-      goodSection,
       today.length || good.length ? h("a", { class: "btn wide-btn", href: "#everyone" }, "See all requests ›") : null,
+      goodSection,
       h("p", { class: "list-note", text: "New requests are added after each Monday, Wednesday and Friday study, and right away when someone asks for prayer here." }),
       footer()];
   }
